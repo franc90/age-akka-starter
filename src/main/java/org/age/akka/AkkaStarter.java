@@ -1,7 +1,6 @@
 package org.age.akka;
 
 
-import akka.actor.ActorContext;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
 import akka.cluster.Cluster;
@@ -26,7 +25,6 @@ public class AkkaStarter {
                 .registerOnMemberUp(() ->
                                 actorSystem.actorOf(Props.create(AkkaClusterListener.class), CLUSTER_STATE_ACTOR_NAME)
                 );
-
 
         AkkaUtils.setActorSystem(actorSystem);
     }

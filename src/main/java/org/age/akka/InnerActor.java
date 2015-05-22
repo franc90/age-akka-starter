@@ -1,17 +1,17 @@
 package org.age.akka;
 
 import akka.actor.AbstractActor;
-import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import akka.japi.pf.ReceiveBuilder;
-import scala.collection.Iterator;
+import scala.collection.JavaConversions;
 
 public class InnerActor extends AbstractActor {
     private final LoggingAdapter log = Logging.getLogger(context().system(), this);
 
     public InnerActor() {
+        super();
         receive(ReceiveBuilder
                         .match(Command.class, InnerActor.this::command)
                         .matchAny(o -> log.info("unknown message"))
@@ -21,6 +21,7 @@ public class InnerActor extends AbstractActor {
 
 
     private void command(Command command) {
+        log.info("executing command: {}", command);
         if (Command.Type.NEW.equals(command.getType())) {
             createNewActor(command);
         }
@@ -35,12 +36,8 @@ public class InnerActor extends AbstractActor {
     }
 
     private void listExistingActors() {
-        Iterator<ActorRef> actors = context().children().toIterator().filter(e -> !e.isTerminated());
-
-        while (actors.hasNext()) {
-            ActorRef actor = actors.next();
-            System.out.println(actor.path());
-        }
+        JavaConversions.asJavaCollection(context().children()).stream().filter(c -> !c
+                .isTerminated()).forEach(System.out::println);
     }
 
 }
