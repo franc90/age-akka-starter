@@ -18,6 +18,8 @@ public class InnerActor extends AbstractActor {
         );
     }
 
+
+
     @Override
     public void postStop() throws Exception {
         System.out.println("Stopper");

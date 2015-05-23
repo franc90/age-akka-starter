@@ -24,6 +24,7 @@ public class AkkaClusterListener extends UntypedActor {
 
     @Override
     public void onReceive(Object message) throws Exception {
+
         if (message instanceof MemberUp) {
             MemberUp mUp = (MemberUp) message;
             log.info("{} joined cluster", mUp.member());

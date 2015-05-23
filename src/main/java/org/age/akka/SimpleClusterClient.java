@@ -1,10 +1,13 @@
 package org.age.akka;
 
 import akka.actor.ActorRef;
+import akka.cluster.Cluster;
+import akka.cluster.Member;
 import org.age.akka.structures.AkkaNode;
 import org.age.akka.structures.AkkaNodeConfig;
 
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 
 public class SimpleClusterClient {
@@ -24,19 +27,7 @@ public class SimpleClusterClient {
                 .build();
 
         AkkaStarter akkaStarter = new AkkaStarter();
-        akkaStarter.startCluster(config);
-
-        TimeUnit.SECONDS.sleep(4);
-
-        ActorRef inner = AkkaUtils.getActorSystem().actorFor("user/inner");
-        System.out.println("System terminated: " + AkkaUtils.getActorSystem().isTerminated());
-        System.out.println("IS terminated: " + inner.isTerminated());
-        System.out.println(inner.path().toSerializationFormat());
-
-        inner.tell(new Command(Command.Type.NEW, "ac1"), ActorRef.noSender());
-        inner.tell(new Command(Command.Type.LIST, "ac1"), ActorRef.noSender());
-        inner.tell(new Command(Command.Type.NEW, "someAct"), ActorRef.noSender());
-        inner.tell(new Command(Command.Type.LIST, "ac1"), ActorRef.noSender());
+        akkaStarter.joinCluster(config);
     }
 
 }
