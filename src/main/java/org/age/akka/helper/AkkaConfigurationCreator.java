@@ -8,6 +8,8 @@ import org.age.akka.structures.AkkaNodeConfig;
 import org.apache.commons.collections.CollectionUtils;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 
 public class AkkaConfigurationCreator {
 
@@ -28,10 +30,13 @@ public class AkkaConfigurationCreator {
             "      %s" +
             "    ]\n" +
             "    auto-down-unreachable-after = 10s\n" +
+            "    roles = [ %s ]\n" +
             "  }\n" +
             "}\n";
 
     public static final String seedNodeString = "      \"akka.tcp://%s@%s:%s\"";
+
+    public static final String roleString = "\"%s\"";
 
     public static Config createConfiguration(AkkaNodeConfig nodeConfig) {
         checkParams(nodeConfig);
@@ -39,8 +44,9 @@ public class AkkaConfigurationCreator {
         String hostname = nodeConfig.getCurrentNode().getHostname();
         String port = String.valueOf(nodeConfig.getCurrentNode().getPort());
         String seeds = buildSeedNodesString(nodeConfig.getSeedNodes());
+        String roles = buildRoles(nodeConfig.getCurrentNode().getRoles());
 
-        String formattedConfig = String.format(configString, hostname, port, seeds);
+        String formattedConfig = String.format(configString, hostname, port, seeds, roles);
 
         Config config = ConfigFactory.parseString(formattedConfig);
 
@@ -74,5 +80,18 @@ public class AkkaConfigurationCreator {
                 .get();
 
         return returnVal + "\n";
+    }
+
+    private static String buildRoles(List<String> roles) {
+        Optional<String> resultRole = roles
+                .stream()
+                .map(role -> String.format(roleString, role))
+                .reduce((a, b) -> a + " , " + b);
+
+        if (resultRole.isPresent()) {
+            return resultRole.get();
+        }
+
+        return "";
     }
 }

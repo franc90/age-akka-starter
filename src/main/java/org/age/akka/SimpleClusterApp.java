@@ -2,6 +2,7 @@ package org.age.akka;
 
 import akka.actor.ActorRef;
 import akka.actor.Props;
+import org.age.akka.helper.AkkaConfigConstants;
 import org.age.akka.structures.AkkaNode;
 import org.age.akka.structures.AkkaNodeConfig;
 
@@ -15,6 +16,7 @@ public class SimpleClusterApp {
                                 .withActorSystemName("sys")
                                 .withHostname("localhost")
                                 .withPort(2551)
+                                .addRole(AkkaConfigConstants.CLUSTER_MEMBER_ROLE)
                                 .build()
                 ).withSeedNodes(Arrays.asList(AkkaNode.builder()
                         .withActorSystemName("sys")

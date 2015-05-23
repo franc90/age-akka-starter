@@ -3,13 +3,13 @@ package org.age.akka.actors;
 import akka.actor.AbstractActor;
 import akka.actor.ActorSelection;
 import akka.actor.Address;
-import akka.actor.RootActorPath;
 import akka.cluster.Cluster;
 import akka.cluster.ClusterEvent;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import akka.japi.pf.ReceiveBuilder;
 import org.age.akka.helper.AkkaConfigConstants;
+import org.age.akka.helper.PathHelper;
 import org.age.akka.messages.ListNodes;
 import org.age.akka.messages.RegisterWorker;
 
@@ -21,13 +21,12 @@ public class WorkerManagingActor extends AbstractActor {
         receive(ReceiveBuilder
                 .match(ClusterEvent.MemberUp.class, memberUp -> {
                     log.info("Member up: " + memberUp.member());
-                    Address address = memberUp.member().address();
-                    String str = "akka.tcp://" + address.hostPort() + "/user/" + AkkaConfigConstants.CLUSTER_MANAGING_AGENT_NAME;
-                    System.out.println(str);
-                    ActorSelection actorSelection = context().actorSelection(str);
-
-                    log.info("telling: " + address.host() + ":" + address.hostPort() + "   " + actorSelection.toSerializationFormat() + " ");
-                    actorSelection.tell(new RegisterWorker(), self());
+                    if (memberUp.member().hasRole(AkkaConfigConstants.CLUSTER_MEMBER_ROLE)) {
+                        Address address = memberUp.member().address();
+                        String path = PathHelper.createPath(address.hostPort(), AkkaConfigConstants.CLUSTER_MANAGING_AGENT_NAME);
+                        ActorSelection actorSelection = context().actorSelection(path);
+                        actorSelection.tell(new RegisterWorker(), self());
+                    }
                 })
                 .match(ListNodes.class, e -> {
                     log.info("Worker creation confirmed");
@@ -35,7 +34,6 @@ public class WorkerManagingActor extends AbstractActor {
                 .build());
 
     }
-
 
 
     @Override
