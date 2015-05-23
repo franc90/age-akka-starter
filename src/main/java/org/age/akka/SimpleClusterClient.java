@@ -1,14 +1,10 @@
 package org.age.akka;
 
-import akka.actor.ActorRef;
-import akka.cluster.Cluster;
-import akka.cluster.Member;
+import org.age.akka.helper.AkkaConfigConstants;
 import org.age.akka.structures.AkkaNode;
 import org.age.akka.structures.AkkaNodeConfig;
 
 import java.util.Arrays;
-import java.util.Iterator;
-import java.util.concurrent.TimeUnit;
 
 public class SimpleClusterClient {
 
@@ -17,7 +13,8 @@ public class SimpleClusterClient {
                 .withCurrentNode(AkkaNode.builder()
                                 .withActorSystemName("sys")
                                 .withHostname("localhost")
-                                .withPort(2552)
+                                .withPort(0)
+                                .addRole(AkkaConfigConstants.CLUSTER_WORKER_ROLE)
                                 .build()
                 ).withSeedNodes(Arrays.asList(AkkaNode.builder()
                         .withActorSystemName("sys")

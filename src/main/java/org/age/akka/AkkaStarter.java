@@ -5,8 +5,8 @@ import akka.actor.ActorSystem;
 import akka.actor.Props;
 import akka.cluster.Cluster;
 import com.typesafe.config.Config;
-import org.age.akka.actors.ClusterManagingActor;
-import org.age.akka.actors.WorkerManagingActor;
+import org.age.akka.actors.proxy.ClusterProxyActor;
+import org.age.akka.actors.proxy.WorkerProxyActor;
 import org.age.akka.helper.AkkaConfigConstants;
 import org.age.akka.helper.AkkaConfigurationCreator;
 import org.age.akka.structures.AkkaNode;
@@ -19,7 +19,7 @@ public class AkkaStarter {
         Cluster
                 .get(actorSystem)
                 .registerOnMemberUp(() ->
-                                actorSystem.actorOf(Props.create(ClusterManagingActor.class), AkkaConfigConstants.CLUSTER_MANAGING_AGENT_NAME)
+                                actorSystem.actorOf(Props.create(ClusterProxyActor.class), AkkaConfigConstants.CLUSTER_PROXY_AGENT_NAME)
                 );
     }
 
@@ -28,7 +28,7 @@ public class AkkaStarter {
         Cluster
                 .get(actorSystem)
                 .registerOnMemberUp(() ->
-                                actorSystem.actorOf(Props.create(WorkerManagingActor.class), AkkaConfigConstants.WORKER_MANAGING_AGENT_NAME)
+                                actorSystem.actorOf(Props.create(WorkerProxyActor.class), AkkaConfigConstants.WORKER_PROXY_AGENT_NAME)
                 );
     }
 

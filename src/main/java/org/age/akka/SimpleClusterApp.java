@@ -1,7 +1,5 @@
 package org.age.akka;
 
-import akka.actor.ActorRef;
-import akka.actor.Props;
 import org.age.akka.helper.AkkaConfigConstants;
 import org.age.akka.structures.AkkaNode;
 import org.age.akka.structures.AkkaNodeConfig;

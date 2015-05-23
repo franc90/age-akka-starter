@@ -2,11 +2,11 @@ package org.age.akka.helper;
 
 public interface AkkaConfigConstants {
 
-    String CLUSTER_MEMBER_ROLE = "ClusterMember";
+    String CLUSTER_MEMBER_ROLE = "clusterMember";
 
-    String CLUSTER_MANAGING_AGENT_NAME = "clusterManagingAgent";
+    String CLUSTER_WORKER_ROLE = "clusterWorker";
 
-    String WORKER_MANAGING_AGENT_NAME = "workerManagingAgent";
+    String CLUSTER_PROXY_AGENT_NAME = "clusterProxyAgent";
 
-
+    String WORKER_PROXY_AGENT_NAME = "workerProxyAgent";
 }
