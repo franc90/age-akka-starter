@@ -21,4 +21,12 @@ public class Command implements Serializable {
     public String getParam() {
         return param;
     }
+
+    @Override
+    public String toString() {
+        return "Command{" +
+                "type=" + type +
+                ", param='" + param + '\'' +
+                '}';
+    }
 }

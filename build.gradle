@@ -18,8 +18,14 @@ dependencies {
 
 }
 
-task execute(type:JavaExec) {
+task cluster(type:JavaExec) {
     main = 'org.age.akka.SimpleClusterApp'
+    classpath = sourceSets.main.runtimeClasspath
+    args=['0', '0']
+}
+
+task client(type:JavaExec) {
+    main = 'org.age.akka.SimpleClusterClient'
     classpath = sourceSets.main.runtimeClasspath
     args=['0', '0']
 }
