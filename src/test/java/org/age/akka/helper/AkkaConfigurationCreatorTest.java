@@ -24,7 +24,7 @@ public class AkkaConfigurationCreatorTest {
     public static final String NODE_HOSTNAME = "162.23.58.1";
     public static final int NODES_CNT = 3;
 
-    private Collection<AkkaNode> nodes;
+    private List<AkkaNode> nodes;
 
     private AkkaNode currentNode;
 
@@ -61,7 +61,7 @@ public class AkkaConfigurationCreatorTest {
         AkkaConfigurationCreator.createConfiguration(AkkaNodeConfig
                 .builder()
                 .withCurrentNode(currentNode)
-                .withSeedNodes(new HashSet<>())
+                .withSeedNodes(new ArrayList<>())
                 .build());
     }
 

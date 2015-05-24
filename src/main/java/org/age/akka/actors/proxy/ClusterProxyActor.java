@@ -1,14 +1,16 @@
 package org.age.akka.actors.proxy;
 
+import akka.actor.Address;
 import akka.cluster.Cluster;
 import akka.cluster.ClusterEvent;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
-import org.age.akka.actors.proxy.AbstractProxyActor;
+import org.age.akka.actors.proxy.key.WorkerMemberKey;
 import org.age.akka.helper.AkkaConfigConstants;
+import org.age.akka.helper.PathHelper;
 import org.age.akka.messages.ListNodes;
 
-public class ClusterProxyActor extends AbstractProxyActor {
+public class ClusterProxyActor extends AbstractProxyActor<WorkerMemberKey> {
     private final LoggingAdapter log = Logging.getLogger(context().system(), this);
     private Cluster cluster = Cluster.get(getContext().system());
 
@@ -16,7 +18,11 @@ public class ClusterProxyActor extends AbstractProxyActor {
         receive(addClusterEventsSupport()
                 .match(ListNodes.class, e -> {
                     log.info("Listing workers: ");
-                    members.keySet().stream().forEach(log::info);
+                    members
+                            .keySet()
+                            .stream()
+                            .map(WorkerMemberKey::getPath)
+                            .forEach(log::info);
                 })
                 .matchAny(e -> log.info("GOT: " + e))
                 .build());
@@ -35,6 +41,16 @@ public class ClusterProxyActor extends AbstractProxyActor {
     @Override
     protected String getMemberRole() {
         return AkkaConfigConstants.CLUSTER_WORKER_ROLE;
+    }
+
+    @Override
+    protected WorkerMemberKey generateKey(Address memberAddress) {
+        String path = PathHelper.createPath(memberAddress.hostPort(), AkkaConfigConstants.WORKER_PROXY_AGENT_NAME);
+
+        return WorkerMemberKey
+                .builder()
+                .withPath(path)
+                .build();
     }
 }
 

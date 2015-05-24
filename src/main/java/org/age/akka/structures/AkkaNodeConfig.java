@@ -2,6 +2,7 @@ package org.age.akka.structures;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.List;
 
 public class AkkaNodeConfig implements Serializable {
 
@@ -10,9 +11,9 @@ public class AkkaNodeConfig implements Serializable {
     /**
      * Nodes that Akka cluster consists of
      */
-    private final Collection<AkkaNode> seedNodes;
+    private final List<AkkaNode> seedNodes;
 
-    public AkkaNodeConfig(AkkaNode currentNode, Collection<AkkaNode> seedNodes) {
+    public AkkaNodeConfig(AkkaNode currentNode, List<AkkaNode> seedNodes) {
         this.currentNode = currentNode;
         this.seedNodes = seedNodes;
     }
@@ -21,7 +22,7 @@ public class AkkaNodeConfig implements Serializable {
         return currentNode;
     }
 
-    public Collection<AkkaNode> getSeedNodes() {
+    public List<AkkaNode> getSeedNodes() {
         return seedNodes;
     }
 
@@ -32,14 +33,14 @@ public class AkkaNodeConfig implements Serializable {
     public static class Builder {
 
         private AkkaNode currentNode;
-        private Collection<AkkaNode> seedNodes;
+        private List<AkkaNode> seedNodes;
 
         public Builder withCurrentNode(AkkaNode currentNode) {
             this.currentNode = currentNode;
             return this;
         }
 
-        public Builder withSeedNodes(Collection<AkkaNode> seedNodes) {
+        public Builder withSeedNodes(List<AkkaNode> seedNodes) {
             this.seedNodes = seedNodes;
             return this;
         }

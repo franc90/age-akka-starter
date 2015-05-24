@@ -19,14 +19,18 @@ dependencies {
 
 }
 
-task cluster(type:JavaExec) {
+task cluster(type: JavaExec) {
     main = 'org.age.akka.SimpleClusterApp'
     classpath = sourceSets.main.runtimeClasspath
-    args=['0', '0']
+    if (project.hasProperty('args')) {
+        args project.args.split('\\s+')
+    } else {
+        args '2551'
+    }
 }
 
-task client(type:JavaExec) {
+task client(type: JavaExec) {
     main = 'org.age.akka.SimpleClusterClient'
     classpath = sourceSets.main.runtimeClasspath
-    args=['0', '0']
+    args = ['0', '0']
 }
