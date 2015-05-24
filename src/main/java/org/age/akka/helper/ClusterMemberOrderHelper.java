@@ -22,6 +22,6 @@ public class ClusterMemberOrderHelper {
             }
         }
 
-        throw new NoMemberInClusterException();
+        throw new NoMemberInClusterException("Member " + host + ":" + port + " not in cluster.");
     }
 }

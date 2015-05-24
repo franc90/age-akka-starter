@@ -33,42 +33,44 @@ public abstract class AbstractProxyActor<T extends MemberKey> extends AbstractAc
     protected abstract T generateKey(Address memberAddress);
 
 
-    private void addMember(Member member) {
+    protected T addMember(Member member) {
         if (!member.hasRole(getMemberRole())) {
             Set<String> roles = member.getRoles();
             String role = roles.isEmpty() ? "" : roles.iterator().next();
             log.info("Member[{}] up: {}", role, member);
-            return;
+            return null;
         }
 
         Address memberAddress = member.address();
         T memberKey = generateKey(memberAddress);
 
         if (members.containsKey(memberKey)) {
-            return;
+            return memberKey;
         }
 
         log.info("Member[{}] up and added to members: {}", getMemberRole(), member);
         ActorSelection actorSelection = context().actorSelection(memberKey.getPath());
         members.put(memberKey, actorSelection);
+        return memberKey;
     }
 
-    private void removeMember(Member member) {
+    protected T removeMember(Member member) {
         if (!member.hasRole(getMemberRole())) {
             Set<String> roles = member.getRoles();
             String role = roles.isEmpty() ? "" : roles.iterator().next();
             log.info("Removing member[{}]: {}", role, member);
-            return;
+            return null;
         }
 
         Address memberAddress = member.address();
         T memberKey = generateKey(memberAddress);
 
         if (!members.containsKey(memberKey)) {
-            return;
+            return null;
         }
 
         log.info("Removing member[{}]: {}", getMemberRole(), member);
         members.remove(memberKey);
+        return memberKey;
     }
 }

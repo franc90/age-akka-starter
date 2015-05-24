@@ -21,7 +21,7 @@ public class ClusterProxyActor extends AbstractProxyActor<WorkerMemberKey> {
                     members
                             .keySet()
                             .stream()
-                            .map(WorkerMemberKey::getPath)
+                            .map(WorkerMemberKey::toString)
                             .forEach(log::info);
                 })
                 .matchAny(e -> log.info("GOT: " + e))
