@@ -12,10 +12,24 @@ repositories {
 }
 
 dependencies {
-    testCompile group: 'junit', name: 'junit', version: '4.11'
-    compile 'com.typesafe.akka:akka-remote_2.10:2.3.11'
-    compile 'com.typesafe.akka:akka-cluster_2.10:2.3.11'
+    testCompile 'org.testng:testng:+'
+    testCompile 'org.mockito:mockito-all:+'
+    testCompile 'org.assertj:assertj-core:+'
+    testCompile 'org.assertj:assertj-guava:+'
+    compile 'com.typesafe.akka:akka-remote_2.11:2.4.0'
+    compile 'com.typesafe.akka:akka-cluster_2.11:2.4.0'
     compile 'commons-collections:commons-collections:3.2.1'
+    compile 'com.google.guava:guava:+'
+    compile 'org.slf4j:slf4j-api:+'
+
+    compile 'javax.inject:javax.inject:1'
+    compile 'org.springframework:spring-context:+'
+    compile 'org.springframework:spring-test:+'
+    compile('com.hazelcast:hazelcast:+') {
+        // Not needed and would introduce a lot of duplicated annotations
+        exclude group: 'net.sourceforge.findbugs'
+    }
+    compile 'com.hazelcast:hazelcast-spring:+'
 
 }
 
