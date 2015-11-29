@@ -3,8 +3,7 @@ package org.age.akka.core.helper;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import org.age.akka.core.exceptions.AkkaClusterNotStartedException;
-import org.age.akka.start.data.AkkaNode;
-import org.age.akka.start.data.ClusterConfigHolder;
+import org.age.akka.start.common.data.*;
 import org.apache.commons.collections.CollectionUtils;
 
 import java.util.Collection;
@@ -27,12 +26,12 @@ public class AkkaConfigurationCreator {
 
         String configString = configurationLoader.loadConfigurationTemplate();
 
-        String hostname = nodeConfig.getCurrentNode().getHostname();
-        String port = String.valueOf(nodeConfig.getCurrentNode().getPort());
+        Hostname hostname = nodeConfig.getCurrentNode().getHostname();
+        Port port = nodeConfig.getCurrentNode().getPort();
         String seeds = buildSeedNodesString(nodeConfig.getClusterNodes());
         String roles = buildRoles(nodeConfig.getCurrentNode().getRoles());
 
-        String formattedConfig = String.format(configString, hostname, port, seeds, roles);
+        String formattedConfig = String.format(configString, hostname.getHostname(), port.stringValue(), seeds, roles);
 
         return ConfigFactory.parseString(formattedConfig);
     }
@@ -55,10 +54,10 @@ public class AkkaConfigurationCreator {
         String returnVal = seedNodes
                 .stream()
                 .map(node -> {
-                    String actorSystemName = node.getActorSystemName();
-                    String hostname = node.getHostname();
-                    String port = String.valueOf(node.getPort());
-                    return String.format(seedNodeString, actorSystemName, hostname, port);
+                    ActorSystemName actorSystemName = node.getActorSystemName();
+                    Hostname hostname = node.getHostname();
+                    Port port = node.getPort();
+                    return String.format(seedNodeString, actorSystemName.getName(), hostname.getHostname(), port.stringValue());
                 })
                 .reduce((u, v) -> u + ",\n" + v)
                 .get();
@@ -66,10 +65,10 @@ public class AkkaConfigurationCreator {
         return returnVal + "\n";
     }
 
-    private String buildRoles(List<String> roles) {
+    private String buildRoles(List<Role> roles) {
         return roles
                 .stream()
-                .map(role -> String.format(roleString, role))
+                .map(role -> String.format(roleString, role.getRoleName()))
                 .reduce((a, b) -> a + " , " + b)
                 .orElse("");
     }

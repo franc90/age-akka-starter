@@ -3,7 +3,7 @@ package org.age.akka.core.helper;
 import akka.actor.Address;
 import org.age.akka.core.AkkaUtils;
 import org.age.akka.core.exceptions.NoMemberInClusterException;
-import org.age.akka.start.data.AkkaNode;
+import org.age.akka.start.common.data.AkkaNode;
 
 import java.util.List;
 
@@ -17,7 +17,7 @@ public class ClusterMemberOrder {
         for (int i = 0; i < clusterNodes.size(); i++) {
             AkkaNode akkaNode = clusterNodes.get(i);
 
-            if (akkaNode.getHostname().equals(host) && akkaNode.getPort() == port) {
+            if (akkaNode.getHostname().getHostname().equals(host) && akkaNode.getPort().getPort() == port) {
                 return i;
             }
         }

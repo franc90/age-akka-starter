@@ -2,7 +2,7 @@ package org.age.akka;
 
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
-import org.age.akka.start.ClusterManagerStarter;
+import org.age.akka.start.startup.manager.ClusterManagerStarter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -14,7 +14,6 @@ public class ClusterManager {
 
     private static final Logger log = LoggerFactory.getLogger(ClusterManager.class);
     private static final int MIN_CLIENTS_NR = 3;
-    private static final int MAX_ATTEMPTS = 3;
     private ClusterManagerStarter clusterManagerStarter;
     private HazelcastInstance hazelcastInstance;
 
@@ -28,12 +27,10 @@ public class ClusterManager {
         ClusterManager manager = new ClusterManager();
 
         manager.waitForSufficientClients();
-        if (manager.startCluster()) {
-            manager.startTask();
-        }
+        manager.startCluster();
+        manager.startTask();
     }
 
-    //temporary method
     private void waitForSufficientClients() throws InterruptedException {
         IMap<Object, Object> nodesMap = hazelcastInstance.getMap("nodesMap");
 
@@ -43,16 +40,8 @@ public class ClusterManager {
         }
     }
 
-    private boolean startCluster() throws InterruptedException {
-        int clusterStartAttempt = 0;
-        while (clusterStartAttempt++ < MAX_ATTEMPTS) {
-            if (clusterManagerStarter.startCluster()) {
-                return true;
-            }
-            TimeUnit.MILLISECONDS.wait(1500);
-            log.info("Cluster not yet started. Attempt ", clusterStartAttempt, " of ", MAX_ATTEMPTS, ". Waiting 1500 ms for next try");
-        }
-        return false;
+    private void startCluster() throws InterruptedException {
+        clusterManagerStarter.startCluster();
     }
 
     private void startTask() {

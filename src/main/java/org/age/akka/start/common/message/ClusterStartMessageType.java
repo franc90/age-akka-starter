@@ -1,0 +1,19 @@
+package org.age.akka.start.common.message;
+
+public enum ClusterStartMessageType {
+
+    START_CLUSTER,
+    CLUSTER_START_SUCCEEDED,
+    CLUSTER_START_FAILED,
+
+    JOIN_CLUSTER,
+    CLUSTER_JOIN_SUCCEEDED,
+    CLUSTER_JOIN_FAILED,
+
+    CREATE_WORKER,
+    CREATE_WORKER_SUCCEEDED,
+    CREATE_WORKER_FAILED,
+
+    EXIT_APPLICATION
+
+}

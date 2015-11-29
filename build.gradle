@@ -34,7 +34,7 @@ dependencies {
 }
 
 task cluster(type: JavaExec) {
-    main = 'org.age.akka.SimpleClusterApp'
+    main = 'org.age.akka.ClusterManager'
     classpath = sourceSets.main.runtimeClasspath
     if (project.hasProperty('args')) {
         args project.args.split('\\s+')
@@ -44,7 +44,7 @@ task cluster(type: JavaExec) {
 }
 
 task client(type: JavaExec) {
-    main = 'org.age.akka.SimpleClusterClient'
+    main = 'org.age.akka.WorkerNode'
     classpath = sourceSets.main.runtimeClasspath
     args = ['0', '0']
 }

@@ -8,8 +8,8 @@ import org.age.akka.core.actors.proxy.ClusterProxyActor;
 import org.age.akka.core.actors.proxy.WorkerProxyActor;
 import org.age.akka.core.helper.AkkaConfigConstants;
 import org.age.akka.core.helper.AkkaConfigurationCreator;
-import org.age.akka.start.data.AkkaNode;
-import org.age.akka.start.data.ClusterConfigHolder;
+import org.age.akka.start.common.data.AkkaNode;
+import org.age.akka.start.common.data.ClusterConfigHolder;
 
 public class AkkaStarter {
 
@@ -43,7 +43,7 @@ public class AkkaStarter {
         Config configuration = configurationCreator.createConfiguration(nodeConfig);
         AkkaNode currentNode = nodeConfig.getCurrentNode();
 
-        ActorSystem actorSystem = ActorSystem.create(currentNode.getActorSystemName(), configuration);
+        ActorSystem actorSystem = ActorSystem.create(currentNode.getActorSystemName().getName(), configuration);
         AkkaUtils.setActorSystem(actorSystem);
 
         return actorSystem;

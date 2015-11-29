@@ -1,8 +1,7 @@
 package org.age.akka.core;
 
 import akka.actor.ActorSystem;
-import org.age.akka.start.data.AkkaNode;
-import org.age.akka.start.data.ClusterConfigHolder;
+import org.age.akka.start.common.data.*;
 import org.testng.annotations.Test;
 
 import java.util.Arrays;
@@ -32,16 +31,16 @@ public class AkkaStarterTest {
     private ClusterConfigHolder generateClusterNodeConfig() {
         return ClusterConfigHolder.builder()
                 .withCurrentNode(AkkaNode.builder()
-                        .withActorSystemName("testSystem")
-                        .withHostname("localhost")
-                        .withPort(7896)
-                        .addRole("master")
+                        .withActorSystemName(new ActorSystemName("testSystem"))
+                        .withHostname(new Hostname("localhost"))
+                        .withPort(new Port(7896))
+                        .addRole(new Role("master"))
                         .build())
                 .withClusterNodes(Arrays.asList(AkkaNode.builder()
-                        .withActorSystemName("testSystem")
-                        .withHostname("localhost")
-                        .withPort(7896)
-                        .addRole("master")
+                        .withActorSystemName(new ActorSystemName("testSystem"))
+                        .withHostname(new Hostname("localhost"))
+                        .withPort(new Port(7896))
+                        .addRole(new Role("master"))
                         .build()))
                 .build();
     }

@@ -1,7 +1,7 @@
 package org.age.akka.core;
 
 import akka.actor.ActorSystem;
-import org.age.akka.start.data.ClusterConfigHolder;
+import org.age.akka.start.common.data.ClusterConfigHolder;
 
 public class AkkaUtils {
 
