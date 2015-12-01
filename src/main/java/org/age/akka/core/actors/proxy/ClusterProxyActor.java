@@ -8,7 +8,6 @@ import akka.event.LoggingAdapter;
 import org.age.akka.core.actors.proxy.key.WorkerMemberKey;
 import org.age.akka.core.helper.AkkaConfigConstants;
 import org.age.akka.core.helper.PathCreator;
-import org.age.akka.core.messages.ListNodes;
 
 public class ClusterProxyActor extends AbstractProxyActor<WorkerMemberKey> {
     private final LoggingAdapter log = Logging.getLogger(context().system(), this);
@@ -16,14 +15,6 @@ public class ClusterProxyActor extends AbstractProxyActor<WorkerMemberKey> {
 
     public ClusterProxyActor() {
         receive(addClusterEventsSupport()
-                .match(ListNodes.class, e -> {
-                    log.info("Listing workers: ");
-                    members
-                            .keySet()
-                            .stream()
-                            .map(WorkerMemberKey::toString)
-                            .forEach(log::info);
-                })
                 .matchAny(e -> log.info("GOT: " + e))
                 .build());
     }

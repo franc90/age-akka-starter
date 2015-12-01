@@ -1,7 +1,8 @@
 package org.age.akka.start.startup.worker;
 
 import akka.actor.ActorSystem;
-import org.age.akka.core.WorkerCreator;
+import org.age.akka.core.NodeStarter;
+import org.age.akka.start.common.data.ClusterConfigHolder;
 import org.age.akka.start.common.utils.ClusterDataHolder;
 import org.age.akka.start.common.utils.HazelcastBean;
 import org.age.akka.start.startup.StartupState;
@@ -24,7 +25,7 @@ public class WorkerNodeStarter extends HazelcastBean {
     private WorkerNodeInitializer workerNodeInitializer;
 
     @Inject
-    private WorkerCreator workerCreator;
+    private NodeStarter nodeStarter;
 
     @Inject
     private ClusterDataHolder clusterDataHolder;
@@ -39,7 +40,8 @@ public class WorkerNodeStarter extends HazelcastBean {
                 log.trace("Waiting for cluster initialization");
             } else if (status == StartupState.WORKING) {
                 if (!clusterDataHolder.isWorkerCreated()) {
-                    ActorSystem actorSystem = workerCreator.createActorSystem();
+                    ClusterConfigHolder configHolder = (ClusterConfigHolder) management().get(StartupProps.CLUSTER_CONFIG);
+                    ActorSystem actorSystem = nodeStarter.createWorker(configHolder);
                     clusterDataHolder.setActorSystem(actorSystem);
                 }
             } else if (status == StartupState.FINISHED) {

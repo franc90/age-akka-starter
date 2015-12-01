@@ -15,8 +15,13 @@ import org.age.akka.core.helper.PathCreator;
 import java.util.Optional;
 
 public class WorkerProxyActor extends AbstractProxyActor<ClusterMemberKey> {
+
     private final LoggingAdapter log = Logging.getLogger(context().system(), this);
-    private Cluster cluster = Cluster.get(getContext().system());
+
+    private final Cluster cluster = Cluster.get(getContext().system());
+
+    private final ClusterMemberOrder clusterMemberOrder = new ClusterMemberOrder();
+
     private ClusterMemberKey currentLeader;
 
     public WorkerProxyActor() {
@@ -89,7 +94,7 @@ public class WorkerProxyActor extends AbstractProxyActor<ClusterMemberKey> {
     @Override
     protected ClusterMemberKey generateKey(Address memberAddress) {
         String path = PathCreator.createPath(memberAddress.hostPort(), AkkaConfigConstants.CLUSTER_PROXY_AGENT_NAME);
-        int order = ClusterMemberOrder.getOrder(memberAddress);
+        int order = clusterMemberOrder.getOrder(memberAddress);
 
         return ClusterMemberKey
                 .builder()

@@ -1,28 +1,32 @@
 package org.age.akka.core.helper;
 
+import com.google.common.base.Preconditions;
+import com.google.common.base.Verify;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import org.age.akka.core.exceptions.AkkaClusterNotStartedException;
 import org.age.akka.start.common.data.*;
 import org.apache.commons.collections.CollectionUtils;
 
+import javax.inject.Inject;
+import javax.inject.Named;
 import java.util.Collection;
 import java.util.List;
 
+@Named
 public class AkkaConfigurationCreator {
 
     private static final String seedNodeString = "      \"akka.tcp://%s@%s:%s\"";
 
     private static final String roleString = "\"%s\"";
 
+    @Inject
     private AkkaConfigurationLoader configurationLoader;
 
-    public AkkaConfigurationCreator() {
-        this.configurationLoader = new AkkaConfigurationLoader();
-    }
-
     public Config createConfiguration(ClusterConfigHolder nodeConfig) {
-        checkParams(nodeConfig);
+        Preconditions.checkNotNull(nodeConfig, "No node config");
+        Preconditions.checkNotNull(nodeConfig.getCurrentNode(), "No current node configuration");
+        Preconditions.checkArgument(CollectionUtils.isEmpty(nodeConfig.getClusterNodes()), "No seed nodes configuration");
 
         String configString = configurationLoader.loadConfigurationTemplate();
 
@@ -34,20 +38,6 @@ public class AkkaConfigurationCreator {
         String formattedConfig = String.format(configString, hostname.getHostname(), port.stringValue(), seeds, roles);
 
         return ConfigFactory.parseString(formattedConfig);
-    }
-
-    private void checkParams(ClusterConfigHolder nodeConfig) {
-        if (nodeConfig == null) {
-            throw new AkkaClusterNotStartedException("No node config");
-        }
-
-        if (nodeConfig.getCurrentNode() == null) {
-            throw new AkkaClusterNotStartedException("No current node configuration");
-        }
-
-        if (CollectionUtils.isEmpty(nodeConfig.getClusterNodes())) {
-            throw new AkkaClusterNotStartedException("No seed nodes configuration");
-        }
     }
 
     private String buildSeedNodesString(Collection<AkkaNode> seedNodes) {

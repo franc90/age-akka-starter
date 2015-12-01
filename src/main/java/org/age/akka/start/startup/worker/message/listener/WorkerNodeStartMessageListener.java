@@ -1,12 +1,13 @@
 package org.age.akka.start.startup.worker.message.listener;
 
 import com.hazelcast.core.Message;
-import org.age.akka.core.ClusterCreator;
-import org.age.akka.core.WorkerCreator;
+import org.age.akka.core.NodeStarter;
+import org.age.akka.start.common.data.ClusterConfigHolder;
 import org.age.akka.start.common.data.NodeId;
 import org.age.akka.start.common.message.ClusterStartMessage;
 import org.age.akka.start.common.message.ClusterStartMessageType;
 import org.age.akka.start.common.message.listener.AbstractMessageListener;
+import org.age.akka.start.startup.enums.StartupProps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,10 +23,7 @@ public class WorkerNodeStartMessageListener extends AbstractMessageListener {
     private static final Logger log = LoggerFactory.getLogger(WorkerNodeStartMessageListener.class);
 
     @Inject
-    private ClusterCreator clusterCreator;
-
-    @Inject
-    private WorkerCreator workerCreator;
+    private NodeStarter nodeStarter;
 
     @Override
     public void onMessage(Message<ClusterStartMessage> message) {
@@ -49,7 +47,8 @@ public class WorkerNodeStartMessageListener extends AbstractMessageListener {
     }
 
     private void startCluster(NodeId senderId) {
-        CompletableFuture.supplyAsync(() -> clusterCreator.startCluster())
+        ClusterConfigHolder configHolder = (ClusterConfigHolder) management().get(StartupProps.CLUSTER_CONFIG);
+        CompletableFuture.supplyAsync(() -> nodeStarter.startCluster(configHolder))
                 .thenAccept(startedCluster -> {
                     log.info("Started cluster: ", startedCluster);
                     dataHolder.setActorSystem(startedCluster.getActorSystem());
@@ -60,7 +59,8 @@ public class WorkerNodeStartMessageListener extends AbstractMessageListener {
     }
 
     private void joinCluster(NodeId senderId) {
-        CompletableFuture.supplyAsync(() -> clusterCreator.joinCluster())
+        ClusterConfigHolder configHolder = (ClusterConfigHolder) management().get(StartupProps.CLUSTER_CONFIG);
+        CompletableFuture.supplyAsync(() -> nodeStarter.joinCluster(configHolder))
                 .thenAccept(startedCluster -> {
                     log.info("Joining cluster: ", startedCluster);
                     dataHolder.setActorSystem(startedCluster.getActorSystem());
@@ -76,7 +76,8 @@ public class WorkerNodeStartMessageListener extends AbstractMessageListener {
     }
 
     private void createWorker(NodeId senderId) {
-        CompletableFuture.supplyAsync(() -> workerCreator.createActorSystem())
+        ClusterConfigHolder configHolder = (ClusterConfigHolder) management().get(StartupProps.CLUSTER_CONFIG);
+        CompletableFuture.supplyAsync(() -> nodeStarter.createWorker(configHolder))
                 .thenAccept(actorSystem -> {
                     log.info("Setting actor system: ", actorSystem);
                     dataHolder.setActorSystem(actorSystem);

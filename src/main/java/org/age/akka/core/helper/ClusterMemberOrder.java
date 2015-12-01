@@ -9,7 +9,7 @@ import java.util.List;
 
 public class ClusterMemberOrder {
 
-    public static int getOrder(Address memberAddress) {
+    public int getOrder(Address memberAddress) {
         List<AkkaNode> clusterNodes = AkkaUtils.getConfig().getClusterNodes();
         String host = memberAddress.host().get();
         int port = (Integer) memberAddress.port().get();

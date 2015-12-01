@@ -12,9 +12,9 @@ public class AkkaStarterTest {
 
     @Test
     public void testStartingComputationCluster() throws Exception {
-        AkkaStarter akkaStarter = new AkkaStarter();
+        NodeStarter nodeStarter = new NodeStarter();
 
-        akkaStarter.startCluster(generateClusterNodeConfig());
+        nodeStarter.startCluster(generateClusterNodeConfig());
 
         ActorSystem actorSystem = AkkaUtils.getActorSystem();
         assertThat(actorSystem).isNotNull();

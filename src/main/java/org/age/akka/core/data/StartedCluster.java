@@ -10,7 +10,7 @@ public class StartedCluster {
 
     private final boolean clusterStarted;
 
-    StartedCluster(ActorSystem actorSystem, boolean clusterStarted) {
+    public StartedCluster(ActorSystem actorSystem, boolean clusterStarted) {
         this.actorSystem = actorSystem;
         this.clusterStarted = clusterStarted;
     }

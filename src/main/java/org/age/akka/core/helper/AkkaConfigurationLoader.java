@@ -6,9 +6,11 @@ import org.age.akka.core.exceptions.AkkaTemplateLoadingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Named;
 import java.io.IOException;
 import java.net.URL;
 
+@Named
 public class AkkaConfigurationLoader {
 
     private static final Logger log = LoggerFactory.getLogger(AkkaConfigurationLoader.class);
