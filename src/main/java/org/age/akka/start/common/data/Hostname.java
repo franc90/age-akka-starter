@@ -2,11 +2,15 @@ package org.age.akka.start.common.data;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.*;
 import java.util.Enumeration;
 
 public class Hostname {
+
+    private static final Logger logger = LoggerFactory.getLogger(Hostname.class);
 
     private final String hostname;
 
@@ -24,30 +28,34 @@ public class Hostname {
 
     private String findHostname() {
         try {
-            try {
-                Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
-                while (networkInterfaces.hasMoreElements()) {
-                    NetworkInterface networkInterface = networkInterfaces.nextElement();
-                    if (!networkInterface.isLoopback()) {
-                        Enumeration<InetAddress> addresses = networkInterface.getInetAddresses();
-                        while (addresses.hasMoreElements()) {
-                            InetAddress address = addresses.nextElement();
-                            if (address.isLoopbackAddress()) {
-                                continue;
-                            }
-                            if (address instanceof Inet4Address) {
-                                return address.getHostAddress();
-                            }
-                        }
-                    }
-                }
-                return Inet4Address.getLocalHost().getHostAddress();
-            } catch (SocketException e) {
-                return Inet4Address.getLocalHost().getHostAddress();
-            }
+            return findInetHostname();
         } catch (UnknownHostException e) {
             return "";
         }
+    }
+
+    private String findInetHostname() throws UnknownHostException {
+        try {
+            Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
+            while (networkInterfaces.hasMoreElements()) {
+                NetworkInterface networkInterface = networkInterfaces.nextElement();
+                if (!networkInterface.isLoopback()) {
+                    Enumeration<InetAddress> addresses = networkInterface.getInetAddresses();
+                    while (addresses.hasMoreElements()) {
+                        InetAddress address = addresses.nextElement();
+                        if (address.isLoopbackAddress()) {
+                            continue;
+                        }
+                        if (address instanceof Inet4Address) {
+                            return address.getHostAddress();
+                        }
+                    }
+                }
+            }
+        } catch (SocketException e) {
+            logger.debug("Caught SocketException while looking for hostname", e);
+        }
+        return Inet4Address.getLocalHost().getHostAddress();
     }
 
     @Override
