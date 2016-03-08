@@ -4,7 +4,7 @@ import akka.actor.ActorSystem;
 
 import javax.inject.Named;
 
-@Named
+@Named("org.age.akka.start.common.utils.ClusterDataHolder")
 public class ClusterDataHolder {
 
     private ActorSystem actorSystem;

@@ -5,10 +5,13 @@ import com.google.common.base.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serializable;
 import java.net.*;
 import java.util.Enumeration;
 
-public class Hostname {
+public class Hostname implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private static final Logger logger = LoggerFactory.getLogger(Hostname.class);
 

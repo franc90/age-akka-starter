@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Named;
 
-@Named("clusterStartMessageListener")
+@Named("org.age.akka.start.startup.manager.message.listener.ClusterManagerStartMessageListener")
 public class ClusterManagerStartMessageListener extends AbstractMessageListener {
 
     private static final Logger log = LoggerFactory.getLogger(ClusterManagerStartMessageListener.class);

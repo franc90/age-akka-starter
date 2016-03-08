@@ -18,9 +18,12 @@ public class ClusterManager {
     private HazelcastInstance hazelcastInstance;
 
     public ClusterManager() {
+        log.info("Starting cluster manager");
         ApplicationContext context = new ClassPathXmlApplicationContext("akka/config/app.cfg.xml");
+        log.info("context loaded");
         clusterManagerStarter = context.getBean(ClusterManagerStarter.class);
         hazelcastInstance = context.getBean(HazelcastInstance.class);
+        log.info("Cluster manager created");
     }
 
     public static void main(String[] args) throws InterruptedException {

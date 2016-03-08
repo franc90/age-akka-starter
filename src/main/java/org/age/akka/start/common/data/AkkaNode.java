@@ -9,6 +9,8 @@ import java.util.List;
 
 public class AkkaNode implements Serializable {
 
+    private static final long serialVersionUID = 1L;
+
     private final ActorSystemName actorSystemName;
 
     /**

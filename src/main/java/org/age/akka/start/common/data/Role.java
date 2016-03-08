@@ -3,7 +3,11 @@ package org.age.akka.start.common.data;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
-public class Role {
+import java.io.Serializable;
+
+public class Role implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private final String roleName;
 

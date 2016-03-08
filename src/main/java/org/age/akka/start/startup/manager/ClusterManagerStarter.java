@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-@Named
+@Named("org.age.akka.start.startup.manager.ClusterManagerStarter")
 public class ClusterManagerStarter extends HazelcastBean {
 
     private static final Logger log = LoggerFactory.getLogger(ClusterManagerStarter.class);

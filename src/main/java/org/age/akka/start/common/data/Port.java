@@ -4,7 +4,11 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import org.springframework.util.SocketUtils;
 
-public class Port {
+import java.io.Serializable;
+
+public class Port implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private static final int MIN_PORT = 2556;
 

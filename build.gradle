@@ -21,6 +21,8 @@ dependencies {
     compile 'commons-collections:commons-collections:3.2.1'
     compile 'com.google.guava:guava:+'
     compile 'org.slf4j:slf4j-api:+'
+    compile 'org.slf4j:jcl-over-slf4j:+'
+    compile 'ch.qos.logback:logback-classic:+'
 
     compile 'javax.inject:javax.inject:1'
     compile 'org.springframework:spring-context:+'
@@ -30,6 +32,8 @@ dependencies {
         exclude group: 'net.sourceforge.findbugs'
     }
     compile 'com.hazelcast:hazelcast-spring:+'
+
+    runtime 'org.codehaus.groovy:groovy-all:+'
 
 }
 
