@@ -42,9 +42,11 @@ public class ClusterManagerStarter extends HazelcastBean {
         startClusterCreation();
 
         while (management().get(StartupProps.STATUS) != StartupState.WORKING) {
+            log.info("Waiting for cluster initialization");
             TimeUnit.MILLISECONDS.sleep(250);
         }
 
+        log.info("Cluster initialized");
         management().put(StartupProps.STATUS, StartupState.FINISHED);
     }
 
@@ -57,10 +59,13 @@ public class ClusterManagerStarter extends HazelcastBean {
 
         createClusterConfig(clusterNodes);
 
-        topic(clusterNodes.get(0))
+        NodeId clusterStartNode = clusterNodes.get(0);
+        log.info("Cluster start node: " + clusterStartNode);
+
+        topic(clusterStartNode)
                 .publish(ClusterStartMessage.builder()
                         .withClusterStartMessageType(ClusterStartMessageType.START_CLUSTER)
-                        .withSenderId(nodeId)
+                        .withSenderId(this.nodeId)
                         .build());
     }
 
@@ -104,6 +109,9 @@ public class ClusterManagerStarter extends HazelcastBean {
                                 .map(clusterNodeId -> nodes().get(clusterNodeId))
                                 .collect(Collectors.toList())
                 ).build();
+
+
+        log.info("Creating cluster for config " + configHolder);
 
         management().put(StartupProps.CLUSTER_CONFIG, configHolder);
     }

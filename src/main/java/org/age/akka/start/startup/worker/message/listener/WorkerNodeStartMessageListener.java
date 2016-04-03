@@ -25,9 +25,14 @@ public class WorkerNodeStartMessageListener extends AbstractMessageListener {
     @Inject
     private NodeStarter nodeStarter;
 
+    @Inject
+    private NodeId currentNodeId;
+
     @Override
     public void onMessage(Message<ClusterStartMessage> message) {
         ClusterStartMessage clusterStartMessage = message.getMessageObject();
+        log.info("Received message " + clusterStartMessage);
+
         switch (clusterStartMessage.getClusterStartMessageType()) {
             case START_CLUSTER:
                 startCluster(clusterStartMessage.getSenderId());
@@ -47,7 +52,9 @@ public class WorkerNodeStartMessageListener extends AbstractMessageListener {
     }
 
     private void startCluster(NodeId senderId) {
-        ClusterConfigHolder configHolder = (ClusterConfigHolder) management().get(StartupProps.CLUSTER_CONFIG);
+        log.info("Starting cluster");
+        ClusterConfigHolder configHolder = updateCurrentNodeConfig((ClusterConfigHolder) management().get(StartupProps.CLUSTER_CONFIG));
+
         CompletableFuture.supplyAsync(() -> nodeStarter.startCluster(configHolder))
                 .thenAccept(startedCluster -> {
                     log.info("Started cluster: ", startedCluster);
@@ -59,7 +66,9 @@ public class WorkerNodeStartMessageListener extends AbstractMessageListener {
     }
 
     private void joinCluster(NodeId senderId) {
-        ClusterConfigHolder configHolder = (ClusterConfigHolder) management().get(StartupProps.CLUSTER_CONFIG);
+        log.info("Joining cluster");
+        ClusterConfigHolder configHolder = updateCurrentNodeConfig((ClusterConfigHolder) management().get(StartupProps.CLUSTER_CONFIG));
+
         CompletableFuture.supplyAsync(() -> nodeStarter.joinCluster(configHolder))
                 .thenAccept(startedCluster -> {
                     log.info("Joining cluster: ", startedCluster);
@@ -76,7 +85,9 @@ public class WorkerNodeStartMessageListener extends AbstractMessageListener {
     }
 
     private void createWorker(NodeId senderId) {
-        ClusterConfigHolder configHolder = (ClusterConfigHolder) management().get(StartupProps.CLUSTER_CONFIG);
+        log.info("Creating worker");
+        ClusterConfigHolder configHolder = updateCurrentNodeConfig((ClusterConfigHolder) management().get(StartupProps.CLUSTER_CONFIG));
+
         CompletableFuture.supplyAsync(() -> nodeStarter.createWorker(configHolder))
                 .thenAccept(actorSystem -> {
                     log.info("Setting actor system: ", actorSystem);
@@ -92,7 +103,19 @@ public class WorkerNodeStartMessageListener extends AbstractMessageListener {
                 });
     }
 
+    private ClusterConfigHolder updateCurrentNodeConfig(ClusterConfigHolder configHolder) {
+        if (configHolder == null) {
+            return null;
+        }
+
+        return ClusterConfigHolder.builder()
+                .withClusterNodes(configHolder.getClusterNodes())
+                .withCurrentNode(nodes().get(nodeId))
+                .build();
+    }
+
     private void sendMessage(NodeId senderId, ClusterStartMessageType type) {
+        log.info("Send message");
         topic(senderId).publish(ClusterStartMessage.builder()
                 .withSenderId(nodeId)
                 .withClusterStartMessageType(type)

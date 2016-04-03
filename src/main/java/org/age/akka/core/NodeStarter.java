@@ -12,12 +12,16 @@ import org.age.akka.core.helper.AkkaConfigurationCreator;
 import org.age.akka.start.common.data.AkkaNode;
 import org.age.akka.start.common.data.ClusterConfigHolder;
 import org.age.akka.start.common.utils.ClusterDataHolder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
 @Named
 public class NodeStarter {
+
+    private static final Logger log = LoggerFactory.getLogger(NodeStarter.class);
 
     @Inject
     private AkkaConfigurationCreator configurationCreator;
@@ -29,6 +33,9 @@ public class NodeStarter {
 
     public StartedCluster startCluster(ClusterConfigHolder nodeConfig) {
         actorSystem = createActorSystem(nodeConfig);
+
+        log.info("Actor system " + actorSystem);
+
         Cluster.get(actorSystem)
                 .registerOnMemberUp(() ->
                         actorSystem.actorOf(Props.create(ClusterProxyActor.class), AkkaConfigConstants.CLUSTER_PROXY_AGENT_NAME)
@@ -67,11 +74,20 @@ public class NodeStarter {
     private ActorSystem createActorSystem(ClusterConfigHolder nodeConfig) {
         AkkaUtils.setConfig(nodeConfig);
 
+        log.info("Creating actor system");
+
         Config configuration = configurationCreator.createConfiguration(nodeConfig);
+
+        log.info("created configuration: " + configuration);
+
         AkkaNode currentNode = nodeConfig.getCurrentNode();
+
+        log.info("Current node " + currentNode);
 
         ActorSystem actorSystem = ActorSystem.create(currentNode.getActorSystemName().getName(), configuration);
         AkkaUtils.setActorSystem(actorSystem);
+
+        log.info("Returning created actor system " + actorSystem);
 
         return actorSystem;
     }

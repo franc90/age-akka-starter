@@ -5,6 +5,8 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import org.age.akka.start.common.data.*;
 import org.apache.commons.collections.CollectionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -14,6 +16,8 @@ import java.util.List;
 @Named
 public class AkkaConfigurationCreator {
 
+    private static final Logger log = LoggerFactory.getLogger(AkkaConfigurationCreator.class);
+
     private static final String seedNodeString = "      \"akka.tcp://%s@%s:%s\"";
 
     private static final String roleString = "\"%s\"";
@@ -22,20 +26,23 @@ public class AkkaConfigurationCreator {
     private AkkaConfigurationLoader configurationLoader;
 
     public Config createConfiguration(ClusterConfigHolder nodeConfig) {
+        log.trace("Creating configuration from config holder: " + nodeConfig);
         Preconditions.checkNotNull(nodeConfig, "No node config");
         Preconditions.checkNotNull(nodeConfig.getCurrentNode(), "No current node configuration");
-        Preconditions.checkArgument(CollectionUtils.isEmpty(nodeConfig.getClusterNodes()), "No seed nodes configuration");
+        Preconditions.checkArgument(CollectionUtils.isNotEmpty(nodeConfig.getClusterNodes()), "No seed nodes configuration");
 
-        String configString = configurationLoader.loadConfigurationTemplate();
+        String configTemplate = configurationLoader.loadConfigurationTemplate();
+        log.trace("Loaded config template\n" + configTemplate);
 
         Hostname hostname = nodeConfig.getCurrentNode().getHostname();
         Port port = nodeConfig.getCurrentNode().getPort();
         String seeds = buildSeedNodesString(nodeConfig.getClusterNodes());
         String roles = buildRoles(nodeConfig.getCurrentNode().getRoles());
 
-        String formattedConfig = String.format(configString, hostname.getHostname(), port.stringValue(), seeds, roles);
+        String config = String.format(configTemplate, hostname.getHostname(), port.stringValue(), seeds, roles);
 
-        return ConfigFactory.parseString(formattedConfig);
+        log.info("Created Akka config\n" + config);
+        return ConfigFactory.parseString(config);
     }
 
     private String buildSeedNodesString(Collection<AkkaNode> seedNodes) {
