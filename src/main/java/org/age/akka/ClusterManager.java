@@ -17,7 +17,7 @@ public class ClusterManager {
     private ClusterManagerStarter clusterManagerStarter;
     private HazelcastInstance hazelcastInstance;
 
-    public ClusterManager() {
+    private ClusterManager() {
         log.info("Starting cluster manager");
         ApplicationContext context = new ClassPathXmlApplicationContext("akka/config/app.cfg.xml");
         log.info("context loaded");
@@ -35,11 +35,11 @@ public class ClusterManager {
     }
 
     private void waitForSufficientClients() throws InterruptedException {
-        IMap<Object, Object> nodesMap = hazelcastInstance.getMap("nodesMap");
+        IMap<Object, Object> nodesMap = hazelcastInstance.getMap("nodes");
 
         while (nodesMap.size() < MIN_CLIENTS_NR) {
             TimeUnit.MILLISECONDS.sleep(500);
-            log.info("Not sufficient number of clients. Currently ", nodesMap.size(), " waiting unit ", MIN_CLIENTS_NR, " present");
+            log.info("Not sufficient number of clients. [" + nodesMap.size() + " of " + MIN_CLIENTS_NR + " ]");
         }
     }
 

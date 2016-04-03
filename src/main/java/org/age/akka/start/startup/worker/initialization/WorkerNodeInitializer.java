@@ -32,10 +32,12 @@ public class WorkerNodeInitializer extends HazelcastBean {
     public void initialize() {
         log.trace("initializing node");
         Hostname hostname = new Hostname();
+        log.trace("hostname " + hostname);
 
         int startTry = 0;
         while (startTry++ < START_RETRIES) {
             Port port = new Port();
+            log.trace("port " + port);
 
             long conflictingHosts = nodes()
                     .entrySet()
@@ -56,11 +58,11 @@ public class WorkerNodeInitializer extends HazelcastBean {
                 nodes().put(nodeId, akkaNode);
                 topic(nodeId).addMessageListener(messageListener);
 
-                log.info("Node initialization succeeded. NodeId = ", nodeId, akkaNode);
+                log.info("Node initialization succeeded. NodeId = " + nodeId + " " + akkaNode);
                 return;
             }
 
-            log.info("Node initialization try ", startTry, "of ", START_RETRIES, " failed.");
+            log.info("Node initialization try " + startTry + "of " + START_RETRIES + " failed.");
         }
 
 

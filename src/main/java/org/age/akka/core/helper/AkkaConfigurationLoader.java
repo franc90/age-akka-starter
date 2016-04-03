@@ -15,7 +15,7 @@ public class AkkaConfigurationLoader {
 
     private static final Logger log = LoggerFactory.getLogger(AkkaConfigurationLoader.class);
 
-    private static final String templateLocation = "akka/template/configTemplate";
+    private static final String templateLocation = "akka/template/configTemplate.txt";
 
     public String loadConfigurationTemplate() {
         try {

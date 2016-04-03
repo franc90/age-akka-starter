@@ -10,7 +10,7 @@ public class WorkerNode {
 
     private WorkerNodeStarter clusterClientStarter;
 
-    public WorkerNode() {
+    private WorkerNode() {
         ApplicationContext context = new ClassPathXmlApplicationContext("akka/config/app.cfg.xml");
         clusterClientStarter = context.getBean(WorkerNodeStarter.class);
     }
