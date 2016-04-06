@@ -1,4 +1,4 @@
-package org.age.akka.start.startup.worker.message.listener;
+package org.age.akka.start.cluster.participant.message.listener;
 
 import com.hazelcast.core.Message;
 import org.age.akka.core.NodeStarter;
@@ -7,7 +7,7 @@ import org.age.akka.start.common.data.NodeId;
 import org.age.akka.start.common.message.ClusterStartMessage;
 import org.age.akka.start.common.message.ClusterStartMessageType;
 import org.age.akka.start.common.message.listener.AbstractMessageListener;
-import org.age.akka.start.startup.enums.StartupProps;
+import org.age.akka.start.cluster.enums.StartupProps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,9 +18,9 @@ import java.util.concurrent.CompletableFuture;
 import static org.age.akka.start.common.message.ClusterStartMessageType.*;
 
 @Named("workerNodeStartMessageListener")
-public class WorkerNodeStartMessageListener extends AbstractMessageListener {
+public class ClusterParticipantNodeStartMessageListener extends AbstractMessageListener {
 
-    private static final Logger log = LoggerFactory.getLogger(WorkerNodeStartMessageListener.class);
+    private static final Logger log = LoggerFactory.getLogger(ClusterParticipantNodeStartMessageListener.class);
 
     @Inject
     private NodeStarter nodeStarter;

@@ -48,7 +48,7 @@ task cluster(type: JavaExec) {
 }
 
 task client(type: JavaExec) {
-    main = 'org.age.akka.WorkerNode'
+    main = 'org.age.akka.ClusterParticipantNode'
     classpath = sourceSets.main.runtimeClasspath
     args = ['0', '0']
 }

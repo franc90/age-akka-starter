@@ -1,4 +1,4 @@
-package org.age.akka.start.startup;
+package org.age.akka.start.cluster;
 
 public enum StartupState {
 

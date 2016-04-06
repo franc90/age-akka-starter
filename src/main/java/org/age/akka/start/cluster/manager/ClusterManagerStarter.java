@@ -1,4 +1,4 @@
-package org.age.akka.start.startup.manager;
+package org.age.akka.start.cluster.manager;
 
 import org.age.akka.start.common.data.ClusterConfigHolder;
 import org.age.akka.start.common.data.NodeId;
@@ -6,9 +6,9 @@ import org.age.akka.start.common.message.ClusterStartMessage;
 import org.age.akka.start.common.message.ClusterStartMessageType;
 import org.age.akka.start.common.utils.ClusterDataHolder;
 import org.age.akka.start.common.utils.HazelcastBean;
-import org.age.akka.start.startup.StartupState;
-import org.age.akka.start.startup.enums.StartupProps;
-import org.age.akka.start.startup.manager.initialization.ClusterManagerInitializer;
+import org.age.akka.start.cluster.StartupState;
+import org.age.akka.start.cluster.enums.StartupProps;
+import org.age.akka.start.cluster.manager.initialization.ClusterManagerInitializer;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

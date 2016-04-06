@@ -1,4 +1,4 @@
-package org.age.akka.start.startup.manager.message.listener;
+package org.age.akka.start.cluster.manager.message.listener;
 
 import com.hazelcast.core.Message;
 import org.age.akka.start.common.data.NodeId;
@@ -6,8 +6,8 @@ import org.age.akka.start.common.enums.ClusterProps;
 import org.age.akka.start.common.message.ClusterStartMessage;
 import org.age.akka.start.common.message.ClusterStartMessageType;
 import org.age.akka.start.common.message.listener.AbstractMessageListener;
-import org.age.akka.start.startup.StartupState;
-import org.age.akka.start.startup.enums.StartupProps;
+import org.age.akka.start.cluster.StartupState;
+import org.age.akka.start.cluster.enums.StartupProps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
