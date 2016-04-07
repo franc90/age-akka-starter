@@ -1,13 +1,13 @@
-package org.age.akka.start.startup.worker;
+package org.age.akka.start.cluster.participant;
 
 import akka.actor.ActorSystem;
 import org.age.akka.core.NodeStarter;
+import org.age.akka.start.cluster.participant.initialization.ClusterParticipantNodeInitializer;
 import org.age.akka.start.common.data.ClusterConfigHolder;
 import org.age.akka.start.common.utils.ClusterDataHolder;
 import org.age.akka.start.common.utils.HazelcastBean;
-import org.age.akka.start.startup.StartupState;
-import org.age.akka.start.startup.enums.StartupProps;
-import org.age.akka.start.startup.worker.initialization.WorkerNodeInitializer;
+import org.age.akka.start.cluster.StartupState;
+import org.age.akka.start.cluster.enums.StartupProps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,12 +17,12 @@ import java.net.UnknownHostException;
 import java.util.concurrent.TimeUnit;
 
 @Named
-public class WorkerNodeStarter extends HazelcastBean {
+public class ClusterParticipantNodeStarter extends HazelcastBean {
 
-    private static final Logger log = LoggerFactory.getLogger(WorkerNodeStarter.class);
+    private static final Logger log = LoggerFactory.getLogger(ClusterParticipantNodeStarter.class);
 
     @Inject
-    private WorkerNodeInitializer workerNodeInitializer;
+    private ClusterParticipantNodeInitializer clusterParticipantNodeInitializer;
 
     @Inject
     private NodeStarter nodeStarter;
@@ -31,7 +31,7 @@ public class WorkerNodeStarter extends HazelcastBean {
     private ClusterDataHolder clusterDataHolder;
 
     public void startWork() throws UnknownHostException, InterruptedException {
-        workerNodeInitializer.initialize();
+        clusterParticipantNodeInitializer.initialize();
 
         while (true) {
             StartupState status = (StartupState) management().get(StartupProps.STATUS);

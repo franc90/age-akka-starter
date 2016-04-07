@@ -1,9 +1,8 @@
-package org.age.akka.start.startup.manager.initialization;
+package org.age.akka.start.cluster.manager.initialization;
 
 import com.hazelcast.core.MessageListener;
 import org.age.akka.start.common.data.NodeId;
 import org.age.akka.start.common.message.ClusterStartMessage;
-import org.age.akka.start.common.message.listener.AbstractMessageListener;
 import org.age.akka.start.common.utils.HazelcastBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

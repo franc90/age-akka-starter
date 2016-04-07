@@ -1,4 +1,4 @@
-package org.age.akka.start.startup.worker.initialization;
+package org.age.akka.start.cluster.participant.initialization;
 
 import org.age.akka.start.common.data.AkkaNode;
 import org.age.akka.start.common.data.Hostname;
@@ -16,9 +16,9 @@ import javax.inject.Named;
 import java.util.Map;
 
 @Named
-public class WorkerNodeInitializer extends HazelcastBean {
+public class ClusterParticipantNodeInitializer extends HazelcastBean {
 
-    private static final Logger log = LoggerFactory.getLogger(WorkerNodeInitializer.class);
+    private static final Logger log = LoggerFactory.getLogger(ClusterParticipantNodeInitializer.class);
 
     private static final int START_RETRIES = 10;
 

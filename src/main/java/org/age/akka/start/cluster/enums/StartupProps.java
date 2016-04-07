@@ -1,4 +1,4 @@
-package org.age.akka.start.startup.enums;
+package org.age.akka.start.cluster.enums;
 
 public interface StartupProps {
 
