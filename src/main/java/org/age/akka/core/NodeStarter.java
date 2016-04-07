@@ -73,22 +73,18 @@ public class NodeStarter {
 
     private ActorSystem createActorSystem(ClusterConfigHolder nodeConfig) {
         AkkaUtils.setConfig(nodeConfig);
-
-        log.info("Creating actor system");
+        log.trace("Creating actor system");
 
         Config configuration = configurationCreator.createConfiguration(nodeConfig);
-
-        log.info("created configuration: " + configuration);
+        log.trace("created configuration: " + configuration);
 
         AkkaNode currentNode = nodeConfig.getCurrentNode();
-
-        log.info("Current node " + currentNode);
+        log.trace("Current node " + currentNode);
 
         ActorSystem actorSystem = ActorSystem.create(currentNode.getActorSystemName().getName(), configuration);
         AkkaUtils.setActorSystem(actorSystem);
 
-        log.info("Returning created actor system " + actorSystem);
-
+        log.trace("Returning created actor system " + actorSystem);
         return actorSystem;
     }
 }

@@ -55,7 +55,7 @@ public class AkkaConfigurationCreator {
                     return String.format(seedNodeString, actorSystemName.getName(), hostname.getHostname(), port.stringValue());
                 })
                 .reduce((u, v) -> u + ",\n" + v)
-                .get();
+                .orElse("NO_SEED_NODES");
 
         return returnVal + "\n";
     }

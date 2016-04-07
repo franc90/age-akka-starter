@@ -25,9 +25,6 @@ public class WorkerNodeStartMessageListener extends AbstractMessageListener {
     @Inject
     private NodeStarter nodeStarter;
 
-    @Inject
-    private NodeId currentNodeId;
-
     @Override
     public void onMessage(Message<ClusterStartMessage> message) {
         ClusterStartMessage clusterStartMessage = message.getMessageObject();
@@ -52,7 +49,7 @@ public class WorkerNodeStartMessageListener extends AbstractMessageListener {
     }
 
     private void startCluster(NodeId senderId) {
-        log.info("Starting cluster");
+        log.trace("Starting cluster");
         ClusterConfigHolder configHolder = updateCurrentNodeConfig((ClusterConfigHolder) management().get(StartupProps.CLUSTER_CONFIG));
 
         CompletableFuture.supplyAsync(() -> nodeStarter.startCluster(configHolder))
@@ -66,7 +63,7 @@ public class WorkerNodeStartMessageListener extends AbstractMessageListener {
     }
 
     private void joinCluster(NodeId senderId) {
-        log.info("Joining cluster");
+        log.trace("Joining cluster");
         ClusterConfigHolder configHolder = updateCurrentNodeConfig((ClusterConfigHolder) management().get(StartupProps.CLUSTER_CONFIG));
 
         CompletableFuture.supplyAsync(() -> nodeStarter.joinCluster(configHolder))
@@ -85,7 +82,7 @@ public class WorkerNodeStartMessageListener extends AbstractMessageListener {
     }
 
     private void createWorker(NodeId senderId) {
-        log.info("Creating worker");
+        log.trace("Creating worker");
         ClusterConfigHolder configHolder = updateCurrentNodeConfig((ClusterConfigHolder) management().get(StartupProps.CLUSTER_CONFIG));
 
         CompletableFuture.supplyAsync(() -> nodeStarter.createWorker(configHolder))
@@ -115,7 +112,7 @@ public class WorkerNodeStartMessageListener extends AbstractMessageListener {
     }
 
     private void sendMessage(NodeId senderId, ClusterStartMessageType type) {
-        log.info("Send message");
+        log.trace("Send message");
         topic(senderId).publish(ClusterStartMessage.builder()
                 .withSenderId(nodeId)
                 .withClusterStartMessageType(type)
