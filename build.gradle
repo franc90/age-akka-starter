@@ -33,6 +33,7 @@ dependencies {
     }
     compile 'com.hazelcast:hazelcast-spring:+'
 	compile 'io.javaslang:javaslang:+'
+    compile 'org.apache.commons:commons-configuration2:+'
 
     runtime 'org.codehaus.groovy:groovy-all:+'
 

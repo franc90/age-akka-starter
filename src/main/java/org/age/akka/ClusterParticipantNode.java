@@ -1,22 +1,20 @@
 package org.age.akka;
 
 import org.age.akka.start.cluster.participant.ClusterParticipantNodeStarter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import java.net.UnknownHostException;
 
 public class ClusterParticipantNode {
 
+    @Autowired
     private ClusterParticipantNodeStarter clusterClientStarter;
 
-    private ClusterParticipantNode() {
-        ApplicationContext context = new ClassPathXmlApplicationContext("akka/config/app.cfg.xml");
-        clusterClientStarter = context.getBean(ClusterParticipantNodeStarter.class);
-    }
-
     public static void main(String[] args) throws UnknownHostException, InterruptedException {
-        ClusterParticipantNode client = new ClusterParticipantNode();
+        ApplicationContext context = new AnnotationConfigApplicationContext(ApplicationSpringConfiguration.class);
+        ClusterParticipantNode client = context.getBean("clusterParticipantNode", ClusterParticipantNode.class);
 
         client.startWork();
     }

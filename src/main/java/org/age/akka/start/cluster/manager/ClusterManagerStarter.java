@@ -15,7 +15,9 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -86,7 +88,7 @@ public class ClusterManagerStarter extends HazelcastBean {
         int allNodes = nodes().size();
 
         if (allNodes < 2) {
-            log.warn("Not enough nodes");
+            log.warn("Not enough nodes for starting service. Please provide at least two nodes");
             management().put(StartupProps.STATUS, StartupState.FINISHED);
             System.exit(1);
         }

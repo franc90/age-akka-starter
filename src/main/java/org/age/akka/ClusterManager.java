@@ -5,41 +5,52 @@ import com.hazelcast.core.IMap;
 import org.age.akka.start.cluster.manager.ClusterManagerStarter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.stereotype.Component;
 
 import java.util.concurrent.TimeUnit;
 
+@Component
 public class ClusterManager {
 
     private static final Logger log = LoggerFactory.getLogger(ClusterManager.class);
-    private static final int MIN_CLIENTS_NR = 3;
+
+    private final int minimalNumberOfClients;
+
+    @Autowired
     private ClusterManagerStarter clusterManagerStarter;
+
+    @Autowired
     private HazelcastInstance hazelcastInstance;
 
-    private ClusterManager() {
+    public ClusterManager(int minimalNumberOfClients) {
         log.info("Starting cluster manager");
-        ApplicationContext context = new ClassPathXmlApplicationContext("akka/config/app.cfg.xml");
-        log.info("context loaded");
-        clusterManagerStarter = context.getBean(ClusterManagerStarter.class);
-        hazelcastInstance = context.getBean(HazelcastInstance.class);
+        this.minimalNumberOfClients = minimalNumberOfClients;
         log.info("Cluster manager created");
     }
 
-    public static void main(String[] args) throws InterruptedException {
-        ClusterManager manager = new ClusterManager();
 
-        manager.waitForSufficientClients();
-        manager.startCluster();
-        manager.startTask();
+    public static void main(String[] args) throws InterruptedException {
+        ApplicationContext context = new AnnotationConfigApplicationContext(ApplicationSpringConfiguration.class);
+        ClusterManager manager = context.getBean("clusterManager", ClusterManager.class);
+
+        manager.startWork();
+    }
+
+    private void startWork() throws InterruptedException {
+        waitForSufficientClients();
+        startCluster();
+        startTask();
     }
 
     private void waitForSufficientClients() throws InterruptedException {
         IMap<Object, Object> nodesMap = hazelcastInstance.getMap("nodes");
 
-        while (nodesMap.size() < MIN_CLIENTS_NR) {
+        while (nodesMap.size() < minimalNumberOfClients) {
             TimeUnit.MILLISECONDS.sleep(500);
-            log.info("Not sufficient number of clients. [" + nodesMap.size() + " of " + MIN_CLIENTS_NR + " ]");
+            log.info("Not sufficient number of clients. [" + nodesMap.size() + " of " + minimalNumberOfClients + " ]");
         }
     }
 
