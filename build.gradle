@@ -32,6 +32,7 @@ dependencies {
         exclude group: 'net.sourceforge.findbugs'
     }
     compile 'com.hazelcast:hazelcast-spring:+'
+	compile 'io.javaslang:javaslang:+'
 
     runtime 'org.codehaus.groovy:groovy-all:+'
 

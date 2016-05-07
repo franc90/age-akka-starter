@@ -13,5 +13,5 @@ appender("CONSOLE", ConsoleAppender) {
 
 root(DEBUG, ["CONSOLE"])
 logger("org.age.akka", TRACE)
-logger("org.springframework", ERROR)
-logger("com.hazelcast", ERROR)
+logger("org.springframework", INFO)
+logger("com.hazelcast", INFO)
