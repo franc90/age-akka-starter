@@ -1,23 +1,21 @@
 package org.age.akka.start.cluster.manager;
 
+import org.age.akka.start.cluster.StartupState;
+import org.age.akka.start.cluster.enums.StartupProps;
+import org.age.akka.start.cluster.manager.initialization.ClusterManagerInitializer;
 import org.age.akka.start.common.data.ClusterConfigHolder;
 import org.age.akka.start.common.data.NodeId;
 import org.age.akka.start.common.message.ClusterStartMessage;
 import org.age.akka.start.common.message.ClusterStartMessageType;
 import org.age.akka.start.common.utils.ClusterDataHolder;
 import org.age.akka.start.common.utils.HazelcastBean;
-import org.age.akka.start.cluster.StartupState;
-import org.age.akka.start.cluster.enums.StartupProps;
-import org.age.akka.start.cluster.manager.initialization.ClusterManagerInitializer;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -45,6 +43,8 @@ public class ClusterManagerStarter extends HazelcastBean {
             log.trace("Waiting for cluster initialization");
             TimeUnit.MILLISECONDS.sleep(250);
         }
+
+        doWork();
 
         log.info("Cluster initialized");
         management().put(StartupProps.STATUS, StartupState.FINISHED);
@@ -114,5 +114,9 @@ public class ClusterManagerStarter extends HazelcastBean {
         log.trace("Creating cluster for config " + configHolder);
 
         management().put(StartupProps.CLUSTER_CONFIG, configHolder);
+    }
+
+    private void doWork() {
+
     }
 }

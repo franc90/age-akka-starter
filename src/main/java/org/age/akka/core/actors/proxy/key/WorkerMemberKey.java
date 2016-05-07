@@ -4,7 +4,7 @@ public class WorkerMemberKey implements MemberKey {
 
     private final String path;
 
-    public WorkerMemberKey(String path) {
+    private WorkerMemberKey(String path) {
         this.path = path;
     }
 
