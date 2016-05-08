@@ -2,23 +2,22 @@ package org.age.akka.start.common.message;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
-import org.age.akka.start.common.data.NodeId;
 
 import java.io.Serializable;
 
 public class ClusterStartMessage implements Serializable {
 
-    private final NodeId senderId;
+    private final String senderUUID;
 
     private final ClusterStartMessageType clusterStartMessageType;
 
     private ClusterStartMessage(ClusterStartMessageBuilder builder) {
-        this.senderId = builder.senderId;
+        this.senderUUID = builder.senderUUID;
         this.clusterStartMessageType = builder.clusterStartMessageType;
     }
 
-    public NodeId getSenderId() {
-        return senderId;
+    public String getSenderUUID() {
+        return senderUUID;
     }
 
     public ClusterStartMessageType getClusterStartMessageType() {
@@ -31,11 +30,11 @@ public class ClusterStartMessage implements Serializable {
 
     public static class ClusterStartMessageBuilder {
 
-        private NodeId senderId;
+        private String senderUUID;
         private ClusterStartMessageType clusterStartMessageType;
 
-        public ClusterStartMessageBuilder withSenderId(NodeId senderId) {
-            this.senderId = senderId;
+        public ClusterStartMessageBuilder withSenderUUID(String senderUUID) {
+            this.senderUUID = senderUUID;
             return this;
         }
 
@@ -57,19 +56,19 @@ public class ClusterStartMessage implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ClusterStartMessage that = (ClusterStartMessage) o;
-        return Objects.equal(senderId, that.senderId) &&
+        return Objects.equal(senderUUID, that.senderUUID) &&
                 clusterStartMessageType == that.clusterStartMessageType;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(senderId, clusterStartMessageType);
+        return Objects.hashCode(senderUUID, clusterStartMessageType);
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
-                .add("senderId", senderId)
+                .add("senderUUID", senderUUID)
                 .add("clusterStartMessageType", clusterStartMessageType)
                 .toString();
     }

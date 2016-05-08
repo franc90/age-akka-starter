@@ -4,7 +4,6 @@ import org.age.akka.start.cluster.StartupState;
 import org.age.akka.start.cluster.enums.StartupProps;
 import org.age.akka.start.cluster.manager.initialization.ClusterManagerInitializer;
 import org.age.akka.start.common.data.ClusterConfigHolder;
-import org.age.akka.start.common.data.NodeId;
 import org.age.akka.start.common.message.ClusterStartMessage;
 import org.age.akka.start.common.message.ClusterStartMessageType;
 import org.age.akka.start.common.utils.ClusterDataHolder;
@@ -32,9 +31,6 @@ public class ClusterManagerStarter extends HazelcastBean {
     @Inject
     private ClusterDataHolder clusterDataHolder;
 
-    @Inject
-    private NodeId nodeId;
-
     public void startCluster() throws InterruptedException {
         management().put(StartupProps.STATUS, StartupState.INIT);
         clusterManagerInitializer.initialize();
@@ -53,7 +49,7 @@ public class ClusterManagerStarter extends HazelcastBean {
     }
 
     private void startClusterCreation() {
-        List<NodeId> clusterNodes = selectClusterNodes();
+        List<String> clusterNodes = selectClusterNodes();
         if (CollectionUtils.isEmpty(clusterNodes)) {
             log.error("No cluster nodes. Never should happen, but who knows?");
             return;
@@ -61,21 +57,21 @@ public class ClusterManagerStarter extends HazelcastBean {
 
         createClusterConfig(clusterNodes);
 
-        NodeId clusterStartNode = clusterNodes.get(0);
+        String clusterStartNode = clusterNodes.get(0);
         log.trace("Cluster start node: " + clusterStartNode);
 
         topic(clusterStartNode)
                 .publish(ClusterStartMessage.builder()
                         .withClusterStartMessageType(ClusterStartMessageType.START_CLUSTER)
-                        .withSenderId(this.nodeId)
+                        .withSenderUUID(getNodeUUID())
                         .build());
     }
 
-    private List<NodeId> selectClusterNodes() {
+    private List<String> selectClusterNodes() {
         int clusterNodesCount = getNodesCount();
 
-        List<NodeId> clusterNodes = new ArrayList<>();
-        List<NodeId> allNodes = new ArrayList<>(nodes().keySet());
+        List<String> clusterNodes = new ArrayList<>();
+        List<String> allNodes = new ArrayList<>(nodes().keySet());
         Collections.shuffle(allNodes);
         for (int i = 0; i < clusterNodesCount; i++) {
             clusterNodes.add(allNodes.get(i));
@@ -104,11 +100,11 @@ public class ClusterManagerStarter extends HazelcastBean {
         return 5;
     }
 
-    private void createClusterConfig(List<NodeId> clusterNodes) {
+    private void createClusterConfig(List<String> clusterNodes) {
         ClusterConfigHolder configHolder = ClusterConfigHolder.builder()
                 .withClusterNodes(
                         clusterNodes.stream()
-                                .map(clusterNodeId -> nodes().get(clusterNodeId))
+                                .map(clusterUUID -> nodes().get(clusterUUID))
                                 .collect(Collectors.toList())
                 ).build();
 

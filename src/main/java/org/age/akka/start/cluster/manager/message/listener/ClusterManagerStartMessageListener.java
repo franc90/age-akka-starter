@@ -1,13 +1,12 @@
 package org.age.akka.start.cluster.manager.message.listener;
 
 import com.hazelcast.core.Message;
-import org.age.akka.start.common.data.NodeId;
+import org.age.akka.start.cluster.StartupState;
+import org.age.akka.start.cluster.enums.StartupProps;
 import org.age.akka.start.common.enums.ClusterProps;
 import org.age.akka.start.common.message.ClusterStartMessage;
 import org.age.akka.start.common.message.ClusterStartMessageType;
 import org.age.akka.start.common.message.listener.AbstractMessageListener;
-import org.age.akka.start.cluster.StartupState;
-import org.age.akka.start.cluster.enums.StartupProps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,27 +24,27 @@ public class ClusterManagerStartMessageListener extends AbstractMessageListener 
 
         switch (clusterStartMessage.getClusterStartMessageType()) {
             case CLUSTER_START_SUCCEEDED:
-                startRemainingNodes(clusterStartMessage.getSenderId());
+                startRemainingNodes(clusterStartMessage.getSenderUUID());
                 break;
             case CLUSTER_START_FAILED:
                 turnOffApplication();
                 break;
             case CLUSTER_JOIN_FAILED:
-                log.warn("Could not join cluster", clusterStartMessage.getSenderId());
+                log.warn("Could not join cluster", clusterStartMessage.getSenderUUID());
                 break;
             case CREATE_WORKER_FAILED:
-                log.warn("Could not create worker", clusterStartMessage.getSenderId());
+                log.warn("Could not create worker", clusterStartMessage.getSenderUUID());
                 break;
             default:
                 // actually, do nothing. Massage is already logged.
         }
     }
 
-    private void startRemainingNodes(NodeId senderId) {
+    private void startRemainingNodes(String senderUUID) {
         nodes()
                 .entrySet()
                 .stream()
-                .filter(entry -> !entry.getKey().equals(senderId))
+                .filter(entry -> !entry.getKey().equals(senderUUID))
                 .forEach(entry -> {
                     ClusterStartMessageType msgType;
                     if (entry.getValue().getRoles().contains(ClusterProps.CLUSTER_MEMBER)) {
@@ -57,7 +56,7 @@ public class ClusterManagerStartMessageListener extends AbstractMessageListener 
                     topic(entry.getKey())
                             .publish(ClusterStartMessage.builder()
                                     .withClusterStartMessageType(msgType)
-                                    .withSenderId(nodeId)
+                                    .withSenderUUID(getNodeUUID())
                                     .build());
                 });
 
@@ -72,7 +71,7 @@ public class ClusterManagerStartMessageListener extends AbstractMessageListener 
                 .stream()
                 .forEach(id ->
                         topic(id).publish(ClusterStartMessage.builder()
-                                .withSenderId(nodeId)
+                                .withSenderUUID(getNodeUUID())
                                 .withClusterStartMessageType(ClusterStartMessageType.EXIT_APPLICATION)
                                 .build())
                 );

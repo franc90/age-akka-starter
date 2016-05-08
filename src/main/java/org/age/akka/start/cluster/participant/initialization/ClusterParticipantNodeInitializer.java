@@ -2,7 +2,6 @@ package org.age.akka.start.cluster.participant.initialization;
 
 import org.age.akka.start.common.data.AkkaNode;
 import org.age.akka.start.common.data.Hostname;
-import org.age.akka.start.common.data.NodeId;
 import org.age.akka.start.common.data.Port;
 import org.age.akka.start.common.enums.ClusterProps;
 import org.age.akka.start.common.exception.NodeInitializationException;
@@ -25,9 +24,6 @@ public class ClusterParticipantNodeInitializer extends HazelcastBean {
     @Inject
     @Named("workerNodeStartMessageListener")
     private AbstractMessageListener messageListener;
-
-    @Inject
-    private NodeId nodeId;
 
     public void initialize() {
         log.trace("initializing node");
@@ -55,10 +51,10 @@ public class ClusterParticipantNodeInitializer extends HazelcastBean {
                         .withPort(port)
                         .build();
 
-                nodes().put(nodeId, akkaNode);
-                topic(nodeId).addMessageListener(messageListener);
+                nodes().put(getNodeUUID(), akkaNode);
+                topic(getNodeUUID()).addMessageListener(messageListener);
 
-                log.info("Node initialization succeeded. NodeId = " + nodeId + " " + akkaNode);
+                log.info("Node initialization succeeded. NodeUUID = " + getNodeUUID() + " " + akkaNode);
                 return;
             }
 
