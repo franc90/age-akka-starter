@@ -5,9 +5,9 @@ import com.google.common.base.Objects;
 
 public class MemberUpdated {
 
-    private State state;
+    private final State state;
 
-    private String uuid;
+    private final String uuid;
 
     public MemberUpdated(State state, String uuid) {
         this.state = state;
@@ -23,7 +23,7 @@ public class MemberUpdated {
     }
 
     public enum State {
-        ADDED, REMOVED, UPDATED
+        ADDED, REMOVED
     }
 
     @Override

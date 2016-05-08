@@ -2,7 +2,6 @@ package org.age.akka;
 
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
-import com.hazelcast.core.HazelcastInstance;
 import org.age.akka.start.cluster.manager.ClusterManagerStarter;
 import org.age.akka.start.cluster.manager.members.event.MemberUpdated;
 import org.age.akka.start.common.utils.HazelcastBean;
@@ -26,9 +25,6 @@ public class ClusterManager extends HazelcastBean {
 
     @Inject
     private ClusterManagerStarter clusterManagerStarter;
-
-    @Inject
-    private HazelcastInstance hazelcastInstance;
 
     @Inject
     private EventBus eventBus;
@@ -57,7 +53,6 @@ public class ClusterManager extends HazelcastBean {
         log.info("Received membership update event ", memberUpdated);
         if (memberUpdated.getState() == MemberUpdated.State.REMOVED) {
             nodes().remove(memberUpdated.getUuid());
-
         }
     }
 
