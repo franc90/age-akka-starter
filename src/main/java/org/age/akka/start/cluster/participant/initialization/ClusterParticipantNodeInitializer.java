@@ -9,10 +9,12 @@ import org.age.akka.start.common.message.listener.AbstractMessageListener;
 import org.age.akka.start.common.utils.HazelcastBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import java.util.Map;
+import java.util.Set;
 
 @Named
 public class ClusterParticipantNodeInitializer extends HazelcastBean {
@@ -21,13 +23,16 @@ public class ClusterParticipantNodeInitializer extends HazelcastBean {
 
     private static final int START_RETRIES = 10;
 
+    @Value("#{'${network.interface.names:default}'.split(',')}")
+    private Set<String> networkInterfaceNames;
+
     @Inject
     @Named("workerNodeStartMessageListener")
     private AbstractMessageListener messageListener;
 
     public void initialize() {
         log.trace("initializing node");
-        Hostname hostname = new Hostname();
+        Hostname hostname = new Hostname(networkInterfaceNames);
         log.trace("hostname " + hostname);
 
         int startTry = 0;

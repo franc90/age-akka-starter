@@ -26,6 +26,7 @@ public class ClusterManagerStarter extends HazelcastBean {
     private static final Logger log = LoggerFactory.getLogger(ClusterManagerStarter.class);
 
     @Inject
+    @Named("org.age.akka.start.cluster.manager.initialization.ClusterManagerInitializer")
     private ClusterManagerInitializer clusterManagerInitializer;
 
     @Inject

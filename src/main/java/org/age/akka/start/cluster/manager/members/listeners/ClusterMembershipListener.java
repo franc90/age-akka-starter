@@ -21,7 +21,6 @@ public class ClusterMembershipListener implements MembershipListener {
 
     @Override
     public void memberAdded(MembershipEvent membershipEvent) {
-        log.info("\n\n\ndupa added");
         String uuid = membershipEvent.getMember().getUuid();
         MemberUpdated memberUpdated = new MemberUpdated(MemberUpdated.State.ADDED, uuid);
         eventBus.post(memberUpdated);
@@ -29,7 +28,6 @@ public class ClusterMembershipListener implements MembershipListener {
 
     @Override
     public void memberRemoved(MembershipEvent membershipEvent) {
-        log.info("\n\n\ndupa removed");
         String uuid = membershipEvent.getMember().getUuid();
         MemberUpdated memberUpdated = new MemberUpdated(MemberUpdated.State.REMOVED, uuid);
         eventBus.post(memberUpdated);

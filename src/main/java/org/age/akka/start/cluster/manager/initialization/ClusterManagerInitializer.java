@@ -5,12 +5,11 @@ import org.age.akka.start.common.message.ClusterStartMessage;
 import org.age.akka.start.common.utils.HazelcastBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
-@Component
+@Named("org.age.akka.start.cluster.manager.initialization.ClusterManagerInitializer")
 public class ClusterManagerInitializer extends HazelcastBean {
 
     private static final Logger log = LoggerFactory.getLogger(ClusterManagerInitializer.class);

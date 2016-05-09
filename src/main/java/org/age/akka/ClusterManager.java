@@ -74,5 +74,6 @@ public class ClusterManager extends HazelcastBean {
     }
 
     private void startTask() {
+        System.out.println("\n\n\n\nSTARTING A TASK\n\n\n\n");
     }
 }
