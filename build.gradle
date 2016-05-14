@@ -40,6 +40,7 @@ dependencies {
 }
 
 task cluster(type: JavaExec) {
+    description = 'Runs cluster manager for this application'
     main = 'org.age.akka.ClusterManager'
     classpath = sourceSets.main.runtimeClasspath
     if (project.hasProperty('args')) {
@@ -50,6 +51,7 @@ task cluster(type: JavaExec) {
 }
 
 task client(type: JavaExec) {
+    description = 'Runs cluster participant - client performing calculations'
     main = 'org.age.akka.ClusterParticipantNode'
     classpath = sourceSets.main.runtimeClasspath
     args = ['0', '0']
