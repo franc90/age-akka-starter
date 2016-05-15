@@ -32,14 +32,14 @@ dependencies {
         exclude group: 'net.sourceforge.findbugs'
     }
     compile 'com.hazelcast:hazelcast-spring:+'
-	compile 'io.javaslang:javaslang:+'
+    compile 'io.javaslang:javaslang:+'
     compile 'org.apache.commons:commons-configuration2:+'
 
     runtime 'org.codehaus.groovy:groovy-all:+'
 
 }
 
-task cluster(type: JavaExec) {
+task manager(type: JavaExec) {
     description = 'Runs cluster manager for this application'
     main = 'org.age.akka.ClusterManager'
     classpath = sourceSets.main.runtimeClasspath
@@ -50,7 +50,7 @@ task cluster(type: JavaExec) {
     }
 }
 
-task client(type: JavaExec) {
+task worker(type: JavaExec) {
     description = 'Runs cluster participant - client performing calculations'
     main = 'org.age.akka.ClusterParticipantNode'
     classpath = sourceSets.main.runtimeClasspath

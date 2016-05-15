@@ -1,15 +1,15 @@
-package org.age.akka.start.cluster.manager.members.event;
+package org.age.akka.start.cluster.manager.members.bus;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
-public class MemberUpdated {
+public class MemberUpdatedMessage {
 
     private final State state;
 
     private final String uuid;
 
-    public MemberUpdated(State state, String uuid) {
+    public MemberUpdatedMessage(State state, String uuid) {
         this.state = state;
         this.uuid = uuid;
     }
@@ -30,7 +30,7 @@ public class MemberUpdated {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        MemberUpdated that = (MemberUpdated) o;
+        MemberUpdatedMessage that = (MemberUpdatedMessage) o;
         return state == that.state &&
                 Objects.equal(uuid, that.uuid);
     }

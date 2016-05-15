@@ -60,7 +60,7 @@ public class ClusterManagerStartMessageListener extends AbstractMessageListener 
                                     .build());
                 });
 
-        management().put(StartupProps.STATUS, StartupState.WORKING);
+        management().put(StartupProps.STATUS, StartupState.CLUSTER_WORKING);
     }
 
     private void turnOffApplication() {
@@ -76,7 +76,7 @@ public class ClusterManagerStartMessageListener extends AbstractMessageListener 
                                 .build())
                 );
 
-        management().put(StartupProps.STATUS, StartupState.FINISHED);
+        management().put(StartupProps.STATUS, StartupState.CLUSTER_INITIALIZATION_FINISHED);
         System.exit(1);
     }
 

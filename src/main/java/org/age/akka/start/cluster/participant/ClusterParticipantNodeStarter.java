@@ -36,15 +36,15 @@ public class ClusterParticipantNodeStarter extends HazelcastBean {
         while (true) {
             StartupState status = (StartupState) management().get(StartupProps.STATUS);
 
-            if (status == null || status == StartupState.INIT) {
+            if (status == null || status == StartupState.INITIALIZE_CLUSTER) {
                 log.trace("Waiting for cluster initialization");
-            } else if (status == StartupState.WORKING) {
+            } else if (status == StartupState.CLUSTER_WORKING) {
                 if (!clusterDataHolder.isWorkerCreated()) {
                     ClusterConfigHolder configHolder = (ClusterConfigHolder) management().get(StartupProps.CLUSTER_CONFIG);
                     ActorSystem actorSystem = nodeStarter.createWorker(configHolder);
                     clusterDataHolder.setActorSystem(actorSystem);
                 }
-            } else if (status == StartupState.FINISHED) {
+            } else if (status == StartupState.CLUSTER_INITIALIZATION_FINISHED) {
                 log.trace("Work finished, exiting");
                 System.exit(0);
             }

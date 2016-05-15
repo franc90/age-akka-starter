@@ -2,8 +2,8 @@ package org.age.akka.start.cluster;
 
 public enum StartupState {
 
-    INIT,
-    WORKING,
-    FINISHED
+    INITIALIZE_CLUSTER,
+    CLUSTER_WORKING,
+    CLUSTER_INITIALIZATION_FINISHED
 
 }

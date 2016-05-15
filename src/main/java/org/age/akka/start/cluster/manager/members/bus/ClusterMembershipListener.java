@@ -1,10 +1,9 @@
-package org.age.akka.start.cluster.manager.members.listeners;
+package org.age.akka.start.cluster.manager.members.bus;
 
 import com.google.common.eventbus.EventBus;
 import com.hazelcast.core.MemberAttributeEvent;
 import com.hazelcast.core.MembershipEvent;
 import com.hazelcast.core.MembershipListener;
-import org.age.akka.start.cluster.manager.members.event.MemberUpdated;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,14 +21,14 @@ public class ClusterMembershipListener implements MembershipListener {
     @Override
     public void memberAdded(MembershipEvent membershipEvent) {
         String uuid = membershipEvent.getMember().getUuid();
-        MemberUpdated memberUpdated = new MemberUpdated(MemberUpdated.State.ADDED, uuid);
+        MemberUpdatedMessage memberUpdated = new MemberUpdatedMessage(MemberUpdatedMessage.State.ADDED, uuid);
         eventBus.post(memberUpdated);
     }
 
     @Override
     public void memberRemoved(MembershipEvent membershipEvent) {
         String uuid = membershipEvent.getMember().getUuid();
-        MemberUpdated memberUpdated = new MemberUpdated(MemberUpdated.State.REMOVED, uuid);
+        MemberUpdatedMessage memberUpdated = new MemberUpdatedMessage(MemberUpdatedMessage.State.REMOVED, uuid);
         eventBus.post(memberUpdated);
     }
 

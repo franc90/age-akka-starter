@@ -1,16 +1,16 @@
 package org.age.akka.start.cluster.manager;
 
+import com.hazelcast.core.MessageListener;
 import org.age.akka.start.cluster.StartupState;
 import org.age.akka.start.cluster.enums.StartupProps;
-import org.age.akka.start.cluster.manager.initialization.ClusterManagerInitializer;
 import org.age.akka.start.common.data.ClusterConfigHolder;
 import org.age.akka.start.common.message.ClusterStartMessage;
 import org.age.akka.start.common.message.ClusterStartMessageType;
-import org.age.akka.start.common.utils.ClusterDataHolder;
 import org.age.akka.start.common.utils.HazelcastBean;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -25,28 +25,38 @@ public class ClusterManagerStarter extends HazelcastBean {
 
     private static final Logger log = LoggerFactory.getLogger(ClusterManagerStarter.class);
 
-    @Inject
-    @Named("org.age.akka.start.cluster.manager.initialization.ClusterManagerInitializer")
-    private ClusterManagerInitializer clusterManagerInitializer;
+    private final int minimalNumberOfClients;
 
     @Inject
-    private ClusterDataHolder clusterDataHolder;
+    @Named("org.age.akka.start.startup.manager.message.listener.ClusterManagerStartMessageListener")
+    private MessageListener<ClusterStartMessage> messageListener;
+
+    @Inject
+    public ClusterManagerStarter(@Value("${cluster.minimal.clients:3}") int minimalNumberOfClients) {
+        this.minimalNumberOfClients = minimalNumberOfClients;
+    }
 
     public void startCluster() throws InterruptedException {
-        management().put(StartupProps.STATUS, StartupState.INIT);
-        clusterManagerInitializer.initialize();
+        waitForSufficientClients();
+        topic(getNodeUUID()).addMessageListener(messageListener);
+        management().put(StartupProps.STATUS, StartupState.INITIALIZE_CLUSTER);
 
         startClusterCreation();
 
-        while (management().get(StartupProps.STATUS) != StartupState.WORKING) {
+        while (management().get(StartupProps.STATUS) != StartupState.CLUSTER_WORKING) {
             log.trace("Waiting for cluster initialization");
             TimeUnit.MILLISECONDS.sleep(250);
         }
 
-        doWork();
-
         log.info("Cluster initialized");
-        management().put(StartupProps.STATUS, StartupState.FINISHED);
+        management().put(StartupProps.STATUS, StartupState.CLUSTER_INITIALIZATION_FINISHED);
+    }
+
+    private void waitForSufficientClients() throws InterruptedException {
+        while (nodes().size() < minimalNumberOfClients) {
+            TimeUnit.MILLISECONDS.sleep(500);
+            log.info("Not sufficient number of clients. [" + nodes().size() + " of " + minimalNumberOfClients + " ]");
+        }
     }
 
     private void startClusterCreation() {
@@ -56,7 +66,7 @@ public class ClusterManagerStarter extends HazelcastBean {
             return;
         }
 
-        createClusterConfig(clusterNodes);
+        createAndPublishClusterConfig(clusterNodes);
 
         String clusterStartNode = clusterNodes.get(0);
         log.trace("Cluster start node: " + clusterStartNode);
@@ -71,7 +81,7 @@ public class ClusterManagerStarter extends HazelcastBean {
     private List<String> selectClusterNodes() {
         int clusterNodesCount = getNodesCount();
 
-        List<String> clusterNodes = new ArrayList<>();
+        List<String> clusterNodes = new ArrayList<>(clusterNodesCount);
         List<String> allNodes = new ArrayList<>(nodes().keySet());
         Collections.shuffle(allNodes);
         for (int i = 0; i < clusterNodesCount; i++) {
@@ -86,7 +96,7 @@ public class ClusterManagerStarter extends HazelcastBean {
 
         if (allNodes < 2) {
             log.warn("Not enough nodes for starting service. Please provide at least two nodes");
-            management().put(StartupProps.STATUS, StartupState.FINISHED);
+            management().put(StartupProps.STATUS, StartupState.CLUSTER_INITIALIZATION_FINISHED);
             System.exit(1);
         }
         if (allNodes < 4) {
@@ -101,11 +111,11 @@ public class ClusterManagerStarter extends HazelcastBean {
         return 5;
     }
 
-    private void createClusterConfig(List<String> clusterNodes) {
+    private void createAndPublishClusterConfig(List<String> clusterNodes) {
         ClusterConfigHolder configHolder = ClusterConfigHolder.builder()
                 .withClusterNodes(
                         clusterNodes.stream()
-                                .map(clusterUUID -> nodes().get(clusterUUID))
+                                .map(nodes()::get)
                                 .collect(Collectors.toList())
                 ).build();
 
@@ -113,9 +123,5 @@ public class ClusterManagerStarter extends HazelcastBean {
         log.trace("Creating cluster for config " + configHolder);
 
         management().put(StartupProps.CLUSTER_CONFIG, configHolder);
-    }
-
-    private void doWork() {
-
     }
 }
