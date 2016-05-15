@@ -12,6 +12,7 @@ import org.age.akka.core.helper.AkkaConfigurationCreator;
 import org.age.akka.start.common.data.AkkaNode;
 import org.age.akka.start.common.data.ClusterConfigHolder;
 import org.age.akka.start.common.utils.ClusterDataHolder;
+import org.jboss.netty.channel.ChannelException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,6 +33,8 @@ public class NodeStarter {
     private ActorSystem actorSystem;
 
     public StartedCluster startCluster(ClusterConfigHolder nodeConfig) {
+        System.out.println("\n\n\nstartCluster");
+
         actorSystem = createActorSystem(nodeConfig);
 
         log.info("Actor system " + actorSystem);
@@ -42,32 +45,45 @@ public class NodeStarter {
                 );
 
         clusterDataHolder.setActorSystem(actorSystem);
-        clusterDataHolder.setWorkerCreated(true);
 
         return new StartedCluster(actorSystem, true);
     }
 
     public StartedCluster joinCluster(ClusterConfigHolder nodeConfig) {
+        System.out.println("\n\n\njoinCluster");
+
         actorSystem = createActorSystem(nodeConfig);
         clusterDataHolder.setActorSystem(actorSystem);
-        clusterDataHolder.setWorkerCreated(actorSystem != null);
 
         return new StartedCluster(actorSystem, true);
     }
 
     public ActorSystem createWorker(ClusterConfigHolder nodeConfig) {
+        System.out.println("\n\n\ncreateWorker");
+
         if (actorSystem != null) {
             return actorSystem;
         }
 
-        actorSystem = createActorSystem(nodeConfig);
+        for (int i = 0; i < 10 && actorSystem == null; ++i) {
+            try {
+                actorSystem = createActorSystem(nodeConfig);
+            } catch (ChannelException ex) {
+                log.warn("Could not open connection yet");
+                try {
+                    Thread.sleep(250);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
         Cluster.get(actorSystem)
                 .registerOnMemberUp(() ->
                         actorSystem.actorOf(Props.create(WorkerProxyActor.class), AkkaConfigConstants.WORKER_PROXY_AGENT_NAME)
                 );
 
         clusterDataHolder.setActorSystem(actorSystem);
-        clusterDataHolder.setWorkerCreated(true);
         return actorSystem;
     }
 

@@ -23,6 +23,8 @@ public class ClusterParticipantNode {
 
     private void startWork() throws InterruptedException, UnknownHostException {
         clusterClientStarter.startWork();
+
+        System.out.println("\n\n\nWORKING");
     }
 
 

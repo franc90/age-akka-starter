@@ -2,8 +2,8 @@ package org.age.akka.start.cluster.participant;
 
 import akka.actor.ActorSystem;
 import org.age.akka.core.NodeStarter;
+import org.age.akka.start.cluster.enums.ClusterStatus;
 import org.age.akka.start.cluster.enums.ManagementMapProperties;
-import org.age.akka.start.cluster.enums.StartupState;
 import org.age.akka.start.common.data.AkkaNode;
 import org.age.akka.start.common.data.ClusterConfigHolder;
 import org.age.akka.start.common.data.Hostname;
@@ -48,12 +48,14 @@ public class ClusterParticipantNodeStarter extends HazelcastBean {
         AkkaNode currentNode = populateNodeData();
 
         while (true) {
-            StartupState status = (StartupState) management().get(ManagementMapProperties.STATUS);
+            ClusterStatus status = (ClusterStatus) management().get(ManagementMapProperties.STATUS);
 
-            if (status == null || status == StartupState.INITIALIZE_CLUSTER) {
+            if (status == null || status == ClusterStatus.INITIALIZING) {
                 log.trace("Waiting for cluster initialization");
-            } else if (status == StartupState.CLUSTER_WORKING) {
-                if (!clusterDataHolder.isWorkerCreated()) {
+            } else if (status == ClusterStatus.WORKING) {
+                if (!clusterDataHolder.getCreatingWorker()) {
+                    System.out.println("\n\n\n");
+                    log.info("Creating worker");
                     ClusterConfigHolder configHolder = (ClusterConfigHolder) management().get(ManagementMapProperties.CLUSTER_CONFIG);
 
                     ActorSystem actorSystem = nodeStarter.createWorker(ClusterConfigHolder.builder()
@@ -62,9 +64,13 @@ public class ClusterParticipantNodeStarter extends HazelcastBean {
                             .build());
 
                     clusterDataHolder.setActorSystem(actorSystem);
+                    return;
+                } else {
+                    log.info("Cluster created");
+                    return;
                 }
-            } else if (status == StartupState.CLUSTER_INITIALIZATION_FINISHED) {
-                log.trace("Work finished, exiting");
+            } else if (status == ClusterStatus.SHUT_DOWN) {
+                log.trace("Cluster shut down");
                 System.exit(0);
             }
             TimeUnit.MILLISECONDS.sleep(250);

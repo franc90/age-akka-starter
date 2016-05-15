@@ -1,7 +1,7 @@
 package org.age.akka.start.cluster.manager;
 
 import com.hazelcast.core.MessageListener;
-import org.age.akka.start.cluster.enums.StartupState;
+import org.age.akka.start.cluster.enums.ClusterStatus;
 import org.age.akka.start.cluster.enums.ManagementMapProperties;
 import org.age.akka.start.common.data.ClusterConfigHolder;
 import org.age.akka.start.common.message.ClusterStartMessage;
@@ -39,17 +39,16 @@ public class ClusterManagerStarter extends HazelcastBean {
     public void startCluster() throws InterruptedException {
         waitForSufficientClients();
         topic(getNodeUUID()).addMessageListener(messageListener);
-        management().put(ManagementMapProperties.STATUS, StartupState.INITIALIZE_CLUSTER);
+        management().put(ManagementMapProperties.STATUS, ClusterStatus.INITIALIZING);
 
         startClusterCreation();
 
-        while (management().get(ManagementMapProperties.STATUS) != StartupState.CLUSTER_WORKING) {
+        while (management().get(ManagementMapProperties.STATUS) != ClusterStatus.WORKING) {
             log.trace("Waiting for cluster initialization");
             TimeUnit.MILLISECONDS.sleep(250);
         }
 
         log.info("Cluster initialized");
-        management().put(ManagementMapProperties.STATUS, StartupState.CLUSTER_INITIALIZATION_FINISHED);
     }
 
     private void waitForSufficientClients() throws InterruptedException {
@@ -96,7 +95,7 @@ public class ClusterManagerStarter extends HazelcastBean {
 
         if (allNodes < 2) {
             log.warn("Not enough nodes for starting service. Please provide at least two nodes");
-            management().put(ManagementMapProperties.STATUS, StartupState.CLUSTER_INITIALIZATION_FINISHED);
+            management().put(ManagementMapProperties.STATUS, ClusterStatus.SHUT_DOWN);
             System.exit(1);
         }
         if (allNodes < 4) {

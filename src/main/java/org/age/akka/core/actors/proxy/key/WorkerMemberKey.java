@@ -25,7 +25,6 @@ public class WorkerMemberKey implements MemberKey {
         WorkerMemberKey that = (WorkerMemberKey) o;
 
         return path.equals(that.path);
-
     }
 
     @Override

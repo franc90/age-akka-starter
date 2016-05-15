@@ -3,13 +3,14 @@ package org.age.akka.start.common.utils;
 import akka.actor.ActorSystem;
 
 import javax.inject.Named;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Named("org.age.akka.start.common.utils.ClusterDataHolder")
 public class ClusterDataHolder {
 
-    private ActorSystem actorSystem;
+    private final AtomicBoolean creatingWorker = new AtomicBoolean();
 
-    private boolean isWorkerCreated;
+    private ActorSystem actorSystem;
 
     public ActorSystem getActorSystem() {
         return actorSystem;
@@ -19,11 +20,8 @@ public class ClusterDataHolder {
         this.actorSystem = actorSystem;
     }
 
-    public boolean isWorkerCreated() {
-        return isWorkerCreated;
+    public boolean getCreatingWorker() {
+        return creatingWorker.getAndSet(true);
     }
 
-    public void setWorkerCreated(boolean workerCreated) {
-        isWorkerCreated = workerCreated;
-    }
 }

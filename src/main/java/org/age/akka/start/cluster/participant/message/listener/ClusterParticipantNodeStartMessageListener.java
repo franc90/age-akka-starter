@@ -82,6 +82,11 @@ public class ClusterParticipantNodeStartMessageListener extends AbstractMessageL
 
     private void createWorker(String senderUUID) {
         log.trace("Creating worker");
+        if (dataHolder.getCreatingWorker()) {
+            log.info("Worker is already being created");
+            return;
+        }
+
         ClusterConfigHolder configHolder = updateCurrentNodeConfig((ClusterConfigHolder) management().get(ManagementMapProperties.CLUSTER_CONFIG));
 
         CompletableFuture.supplyAsync(() -> nodeStarter.createWorker(configHolder))
