@@ -1,8 +1,8 @@
 package org.age.akka.start.cluster.manager;
 
 import com.hazelcast.core.MessageListener;
-import org.age.akka.start.cluster.StartupState;
-import org.age.akka.start.cluster.enums.StartupProps;
+import org.age.akka.start.cluster.enums.StartupState;
+import org.age.akka.start.cluster.enums.ManagementMapProperties;
 import org.age.akka.start.common.data.ClusterConfigHolder;
 import org.age.akka.start.common.message.ClusterStartMessage;
 import org.age.akka.start.common.message.ClusterStartMessageType;
@@ -39,17 +39,17 @@ public class ClusterManagerStarter extends HazelcastBean {
     public void startCluster() throws InterruptedException {
         waitForSufficientClients();
         topic(getNodeUUID()).addMessageListener(messageListener);
-        management().put(StartupProps.STATUS, StartupState.INITIALIZE_CLUSTER);
+        management().put(ManagementMapProperties.STATUS, StartupState.INITIALIZE_CLUSTER);
 
         startClusterCreation();
 
-        while (management().get(StartupProps.STATUS) != StartupState.CLUSTER_WORKING) {
+        while (management().get(ManagementMapProperties.STATUS) != StartupState.CLUSTER_WORKING) {
             log.trace("Waiting for cluster initialization");
             TimeUnit.MILLISECONDS.sleep(250);
         }
 
         log.info("Cluster initialized");
-        management().put(StartupProps.STATUS, StartupState.CLUSTER_INITIALIZATION_FINISHED);
+        management().put(ManagementMapProperties.STATUS, StartupState.CLUSTER_INITIALIZATION_FINISHED);
     }
 
     private void waitForSufficientClients() throws InterruptedException {
@@ -96,7 +96,7 @@ public class ClusterManagerStarter extends HazelcastBean {
 
         if (allNodes < 2) {
             log.warn("Not enough nodes for starting service. Please provide at least two nodes");
-            management().put(StartupProps.STATUS, StartupState.CLUSTER_INITIALIZATION_FINISHED);
+            management().put(ManagementMapProperties.STATUS, StartupState.CLUSTER_INITIALIZATION_FINISHED);
             System.exit(1);
         }
         if (allNodes < 4) {
@@ -122,6 +122,6 @@ public class ClusterManagerStarter extends HazelcastBean {
 
         log.trace("Creating cluster for config " + configHolder);
 
-        management().put(StartupProps.CLUSTER_CONFIG, configHolder);
+        management().put(ManagementMapProperties.CLUSTER_CONFIG, configHolder);
     }
 }

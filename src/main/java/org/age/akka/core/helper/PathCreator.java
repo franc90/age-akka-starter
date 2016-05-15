@@ -2,11 +2,11 @@ package org.age.akka.core.helper;
 
 public class PathCreator {
 
-    public static final String URL_START = "akka.tcp://";
+    private static final String URL_START = "akka.tcp://";
 
-    public static final String USER = "user";
+    private static final String USER = "user";
 
-    public static final String SEPARATOR = "/";
+    private static final String SEPARATOR = "/";
 
     public static String createPath(String hostPort, String... paths) {
         StringBuilder builtPath = new StringBuilder()

@@ -2,7 +2,7 @@ package org.age.akka.start.cluster.participant.message.listener;
 
 import com.hazelcast.core.Message;
 import org.age.akka.core.NodeStarter;
-import org.age.akka.start.cluster.enums.StartupProps;
+import org.age.akka.start.cluster.enums.ManagementMapProperties;
 import org.age.akka.start.common.data.ClusterConfigHolder;
 import org.age.akka.start.common.message.ClusterStartMessage;
 import org.age.akka.start.common.message.ClusterStartMessageType;
@@ -49,7 +49,7 @@ public class ClusterParticipantNodeStartMessageListener extends AbstractMessageL
 
     private void startCluster(String senderUUID) {
         log.trace("Starting cluster");
-        ClusterConfigHolder configHolder = updateCurrentNodeConfig((ClusterConfigHolder) management().get(StartupProps.CLUSTER_CONFIG));
+        ClusterConfigHolder configHolder = updateCurrentNodeConfig((ClusterConfigHolder) management().get(ManagementMapProperties.CLUSTER_CONFIG));
 
         CompletableFuture.supplyAsync(() -> nodeStarter.startCluster(configHolder))
                 .thenAccept(startedCluster -> {
@@ -63,7 +63,7 @@ public class ClusterParticipantNodeStartMessageListener extends AbstractMessageL
 
     private void joinCluster(String senderUUID) {
         log.trace("Joining cluster");
-        ClusterConfigHolder configHolder = updateCurrentNodeConfig((ClusterConfigHolder) management().get(StartupProps.CLUSTER_CONFIG));
+        ClusterConfigHolder configHolder = updateCurrentNodeConfig((ClusterConfigHolder) management().get(ManagementMapProperties.CLUSTER_CONFIG));
 
         CompletableFuture.supplyAsync(() -> nodeStarter.joinCluster(configHolder))
                 .thenAccept(startedCluster -> {
@@ -82,7 +82,7 @@ public class ClusterParticipantNodeStartMessageListener extends AbstractMessageL
 
     private void createWorker(String senderUUID) {
         log.trace("Creating worker");
-        ClusterConfigHolder configHolder = updateCurrentNodeConfig((ClusterConfigHolder) management().get(StartupProps.CLUSTER_CONFIG));
+        ClusterConfigHolder configHolder = updateCurrentNodeConfig((ClusterConfigHolder) management().get(ManagementMapProperties.CLUSTER_CONFIG));
 
         CompletableFuture.supplyAsync(() -> nodeStarter.createWorker(configHolder))
                 .thenAccept(actorSystem -> {
@@ -111,7 +111,7 @@ public class ClusterParticipantNodeStartMessageListener extends AbstractMessageL
     }
 
     private void sendMessage(String senderUUID, ClusterStartMessageType type) {
-        log.trace("Send message");
+        log.trace("Send message ", type);
         topic(senderUUID).publish(ClusterStartMessage.builder()
                 .withSenderUUID(getNodeUUID())
                 .withClusterStartMessageType(type)

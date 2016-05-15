@@ -1,6 +1,6 @@
 package org.age.akka.start.cluster.enums;
 
-public interface StartupProps {
+public interface ManagementMapProperties {
 
     String STATUS = "status";
 

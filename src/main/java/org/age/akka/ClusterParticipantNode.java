@@ -16,9 +16,9 @@ public class ClusterParticipantNode {
 
     public static void main(String[] args) throws UnknownHostException, InterruptedException {
         ApplicationContext context = new AnnotationConfigApplicationContext(ApplicationSpringConfiguration.class);
-        ClusterParticipantNode client = context.getBean("clusterParticipantNode", ClusterParticipantNode.class);
+        ClusterParticipantNode clusterParticipant = context.getBean("clusterParticipantNode", ClusterParticipantNode.class);
 
-        client.startWork();
+        clusterParticipant.startWork();
     }
 
     private void startWork() throws InterruptedException, UnknownHostException {

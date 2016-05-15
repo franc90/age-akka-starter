@@ -16,7 +16,9 @@ import java.util.Map;
 import java.util.Set;
 
 public abstract class AbstractProxyActor<T extends MemberKey> extends AbstractActor {
+
     private final LoggingAdapter log = Logging.getLogger(context().system(), this);
+
     protected Map<T, ActorSelection> members = new HashMap<>();
 
     protected UnitPFBuilder<Object> addClusterEventsSupport() {

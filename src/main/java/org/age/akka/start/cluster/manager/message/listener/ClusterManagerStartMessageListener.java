@@ -1,8 +1,8 @@
 package org.age.akka.start.cluster.manager.message.listener;
 
 import com.hazelcast.core.Message;
-import org.age.akka.start.cluster.StartupState;
-import org.age.akka.start.cluster.enums.StartupProps;
+import org.age.akka.start.cluster.enums.StartupState;
+import org.age.akka.start.cluster.enums.ManagementMapProperties;
 import org.age.akka.start.common.enums.ClusterProps;
 import org.age.akka.start.common.message.ClusterStartMessage;
 import org.age.akka.start.common.message.ClusterStartMessageType;
@@ -60,7 +60,7 @@ public class ClusterManagerStartMessageListener extends AbstractMessageListener 
                                     .build());
                 });
 
-        management().put(StartupProps.STATUS, StartupState.CLUSTER_WORKING);
+        management().put(ManagementMapProperties.STATUS, StartupState.CLUSTER_WORKING);
     }
 
     private void turnOffApplication() {
@@ -76,7 +76,7 @@ public class ClusterManagerStartMessageListener extends AbstractMessageListener 
                                 .build())
                 );
 
-        management().put(StartupProps.STATUS, StartupState.CLUSTER_INITIALIZATION_FINISHED);
+        management().put(ManagementMapProperties.STATUS, StartupState.CLUSTER_INITIALIZATION_FINISHED);
         System.exit(1);
     }
 

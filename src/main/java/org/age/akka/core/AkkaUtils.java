@@ -6,6 +6,7 @@ import org.age.akka.start.common.data.ClusterConfigHolder;
 public class AkkaUtils {
 
     private static ActorSystem actorSystem;
+
     private static ClusterConfigHolder config;
 
     public static ActorSystem getActorSystem() {
