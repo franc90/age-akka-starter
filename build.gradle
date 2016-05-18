@@ -1,11 +1,30 @@
+buildscript {
+    ext {
+        springBootVersion = '1.3.5.RELEASE'
+    }
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+    }
+}
+
 group 'org.age'
 version '1.0-SNAPSHOT'
 
 apply plugin: 'java'
 apply plugin: 'scala'
 apply plugin: 'idea'
+apply plugin: 'spring-boot'
+
+jar {
+    baseName = 'age-akka'
+    version = '0.0.1-SNAPSHOT'
+}
 
 sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
 repositories {
     mavenCentral()
@@ -25,34 +44,11 @@ dependencies {
     compile 'ch.qos.logback:logback-classic:+'
 
     compile 'javax.inject:javax.inject:1'
-    compile 'org.springframework:spring-context:+'
-    compile 'org.springframework:spring-test:+'
-    compile('com.hazelcast:hazelcast:+') {
-        // Not needed and would introduce a lot of duplicated annotations
-        exclude group: 'net.sourceforge.findbugs'
-    }
-    compile 'com.hazelcast:hazelcast-spring:+'
+    compile('org.springframework.cloud:spring-cloud-cluster-hazelcast:+')
+    testCompile('org.springframework.boot:spring-boot-starter-test')
     compile 'io.javaslang:javaslang:+'
     compile 'org.apache.commons:commons-configuration2:+'
 
     runtime 'org.codehaus.groovy:groovy-all:+'
 
-}
-
-task manager(type: JavaExec) {
-    description = 'Runs cluster manager for this application'
-    main = 'org.age.akka.ClusterManager'
-    classpath = sourceSets.main.runtimeClasspath
-    if (project.hasProperty('args')) {
-        args project.args.split('\\s+')
-    } else {
-        args '2551'
-    }
-}
-
-task worker(type: JavaExec) {
-    description = 'Runs cluster participant - client performing calculations'
-    main = 'org.age.akka.ClusterParticipantNode'
-    classpath = sourceSets.main.runtimeClasspath
-    args = ['0', '0']
 }

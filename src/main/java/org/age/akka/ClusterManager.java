@@ -7,8 +7,6 @@ import org.age.akka.start.cluster.manager.members.bus.MemberUpdatedMessage;
 import org.age.akka.start.common.utils.HazelcastBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
@@ -30,13 +28,6 @@ public class ClusterManager extends HazelcastBean {
         eventBus.register(this);
     }
 
-    public static void main(String[] args) throws InterruptedException {
-        ApplicationContext context = new AnnotationConfigApplicationContext(ApplicationSpringConfiguration.class);
-        ClusterManager manager = context.getBean("clusterManager", ClusterManager.class);
-
-        manager.startWork();
-    }
-
     @Subscribe
     private void updateUsers(MemberUpdatedMessage memberUpdated) {
         log.info("Received membership update event ", memberUpdated);
@@ -45,7 +36,7 @@ public class ClusterManager extends HazelcastBean {
         }
     }
 
-    private void startWork() throws InterruptedException {
+    public void startWork() throws InterruptedException {
         clusterManagerStarter.startCluster();
         log.info("Cluster started. Performing scheduled tasks");
         startTask();
