@@ -30,6 +30,7 @@ public class ApplicationStarter implements CommandLineRunner {
             System.out.println("Required:");
             System.out.println("'' or 'worker' - runs application as cluster participant");
             System.out.println("'manager' - runs application as cluster manager");
+            System.exit(1);
         }
     }
 }
