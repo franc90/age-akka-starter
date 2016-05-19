@@ -1,4 +1,4 @@
-package org.age.akka;
+package org.age.akka.start.cluster;
 
 import org.age.akka.start.cluster.participant.ClusterParticipantNodeStarter;
 
@@ -13,7 +13,7 @@ public class ClusterParticipantNode {
     private ClusterParticipantNodeStarter clusterClientStarter;
 
     public void startWork() throws InterruptedException, UnknownHostException {
-        clusterClientStarter.startWork();
+        clusterClientStarter.startAkkaCluster();
 
         System.out.println("\n\n\nWORKING");
     }

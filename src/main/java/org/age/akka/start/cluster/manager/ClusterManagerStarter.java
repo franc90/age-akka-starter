@@ -36,7 +36,7 @@ public class ClusterManagerStarter extends HazelcastBean {
         this.minimalNumberOfClients = minimalNumberOfClients;
     }
 
-    public void startCluster() throws InterruptedException {
+    public void startAkkaCluster() throws InterruptedException {
         waitForSufficientClients();
         topic(getNodeUUID()).addMessageListener(messageListener);
         management().put(ManagementMapProperties.STATUS, ClusterStatus.INITIALIZING);

@@ -1,4 +1,4 @@
-package org.age.akka;
+package org.age.akka.start.cluster;
 
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
@@ -37,12 +37,9 @@ public class ClusterManager extends HazelcastBean {
     }
 
     public void startWork() throws InterruptedException {
-        clusterManagerStarter.startCluster();
+        clusterManagerStarter.startAkkaCluster();
         log.info("Cluster started. Performing scheduled tasks");
-        startTask();
-    }
-
-    private void startTask() {
         System.out.println("\n\n\n\nSTARTING A TASK\n\n\n\n");
     }
+
 }

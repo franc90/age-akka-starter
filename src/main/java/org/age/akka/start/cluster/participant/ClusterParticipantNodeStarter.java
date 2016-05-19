@@ -44,7 +44,7 @@ public class ClusterParticipantNodeStarter extends HazelcastBean {
     @Inject
     private ClusterDataHolder clusterDataHolder;
 
-    public void startWork() throws UnknownHostException, InterruptedException {
+    public void startAkkaCluster() throws UnknownHostException, InterruptedException {
         AkkaNode currentNode = populateNodeData();
 
         while (true) {
@@ -54,7 +54,6 @@ public class ClusterParticipantNodeStarter extends HazelcastBean {
                 log.trace("Waiting for cluster initialization");
             } else if (status == ClusterStatus.WORKING) {
                 if (!clusterDataHolder.getCreatingWorker()) {
-                    System.out.println("\n\n\n");
                     log.info("Creating worker");
                     ClusterConfigHolder configHolder = (ClusterConfigHolder) management().get(ManagementMapProperties.CLUSTER_CONFIG);
 

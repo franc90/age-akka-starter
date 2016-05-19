@@ -1,9 +1,12 @@
-package org.age.akka;
+package org.age.akka.config;
 
 import com.google.common.eventbus.EventBus;
-import com.hazelcast.config.*;
-import com.hazelcast.core.Hazelcast;
-import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.config.Config;
+import com.hazelcast.config.JoinConfig;
+import com.hazelcast.config.ListenerConfig;
+import com.hazelcast.config.MulticastConfig;
+import com.hazelcast.config.NetworkConfig;
+import com.hazelcast.config.TcpIpConfig;
 import com.hazelcast.core.MembershipListener;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -16,14 +19,14 @@ import java.util.List;
 
 @Configuration
 @ComponentScan("org.age.akka")
-@PropertySource("classpath:application.properties")
-public class ApplicationSpringConfiguration {
+@PropertySource("classpath:cluster.properties")
+public class SpringConfiguration {
 
     @Value("#{'${network.tcp.members:127.0.0.1}'.split(',')}")
     private List<String> tcpMembers;
 
     @Bean
-    public HazelcastInstance hazelcastInstance(MembershipListener membershipListener) {
+    public Config hazelcastConfig(MembershipListener membershipListener) {
         Config config = new Config();
         NetworkConfig networkConfig = config.getNetworkConfig();
 
@@ -40,7 +43,7 @@ public class ApplicationSpringConfiguration {
 
         config.addListenerConfig(new ListenerConfig(membershipListener));
 
-        return Hazelcast.newHazelcastInstance(config);
+        return config;
     }
 
     @Bean

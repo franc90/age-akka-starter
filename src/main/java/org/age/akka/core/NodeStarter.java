@@ -33,8 +33,6 @@ public class NodeStarter {
     private ActorSystem actorSystem;
 
     public StartedCluster startCluster(ClusterConfigHolder nodeConfig) {
-        System.out.println("\n\n\nstartCluster");
-
         actorSystem = createActorSystem(nodeConfig);
 
         log.info("Actor system " + actorSystem);
