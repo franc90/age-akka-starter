@@ -28,11 +28,9 @@ public class SpringConfiguration {
     @Bean
     public Config hazelcastConfig(MembershipListener membershipListener) {
         Config config = new Config();
-        NetworkConfig networkConfig = config.getNetworkConfig();
 
-        JoinConfig join = networkConfig.getJoin();
-        MulticastConfig multicastConfig = join.getMulticastConfig();
-        multicastConfig.setEnabled(false);
+        JoinConfig join = config.getNetworkConfig().getJoin();
+        join.getMulticastConfig().setEnabled(false);
 
         TcpIpConfig tcpIpConfig = join.getTcpIpConfig();
         tcpIpConfig.setEnabled(true);
