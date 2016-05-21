@@ -1,4 +1,4 @@
-package org.age.akka.start.cluster.manager.members.bus;
+package org.age.akka.start.cluster.lifecycle.membership;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;

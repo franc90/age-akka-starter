@@ -1,4 +1,4 @@
-package org.age.akka.start.cluster.participant.message.listener;
+package org.age.akka.start.cluster.message.listener;
 
 import com.hazelcast.core.Message;
 import org.age.akka.core.NodeStarter;
@@ -16,10 +16,10 @@ import java.util.concurrent.CompletableFuture;
 
 import static org.age.akka.start.common.message.ClusterStartMessageType.*;
 
-@Named("workerNodeStartMessageListener")
-public class ClusterParticipantNodeStartMessageListener extends AbstractMessageListener {
+@Named("slaveListener")
+public class SlaveStartMessageListener extends AbstractMessageListener {
 
-    private static final Logger log = LoggerFactory.getLogger(ClusterParticipantNodeStartMessageListener.class);
+    private static final Logger log = LoggerFactory.getLogger(SlaveStartMessageListener.class);
 
     @Inject
     private NodeStarter nodeStarter;
@@ -31,13 +31,13 @@ public class ClusterParticipantNodeStartMessageListener extends AbstractMessageL
 
         switch (clusterStartMessage.getClusterStartMessageType()) {
             case START_CLUSTER:
-                startCluster(clusterStartMessage.getSenderUUID());
+                startCluster();
                 break;
             case JOIN_CLUSTER:
-                joinCluster(clusterStartMessage.getSenderUUID());
+                joinCluster();
                 break;
             case CREATE_WORKER:
-                createWorker(clusterStartMessage.getSenderUUID());
+                createWorker();
                 break;
             case EXIT_APPLICATION:
                 exitApplication();
@@ -47,7 +47,7 @@ public class ClusterParticipantNodeStartMessageListener extends AbstractMessageL
         }
     }
 
-    private void startCluster(String senderUUID) {
+    private void startCluster() {
         log.trace("Starting cluster");
         ClusterConfigHolder configHolder = updateCurrentNodeConfig((ClusterConfigHolder) management().get(ManagementMapProperties.CLUSTER_CONFIG));
 
@@ -57,11 +57,11 @@ public class ClusterParticipantNodeStartMessageListener extends AbstractMessageL
                     dataHolder.setActorSystem(startedCluster.getActorSystem());
 
                     ClusterStartMessageType type = startedCluster.isClusterStarted() ? CLUSTER_START_SUCCEEDED : CLUSTER_START_FAILED;
-                    sendMessage(senderUUID, type);
+                    sendMessageToMaster(type);
                 });
     }
 
-    private void joinCluster(String senderUUID) {
+    private void joinCluster() {
         log.trace("Joining cluster");
         ClusterConfigHolder configHolder = updateCurrentNodeConfig((ClusterConfigHolder) management().get(ManagementMapProperties.CLUSTER_CONFIG));
 
@@ -71,16 +71,16 @@ public class ClusterParticipantNodeStartMessageListener extends AbstractMessageL
                     dataHolder.setActorSystem(startedCluster.getActorSystem());
 
                     ClusterStartMessageType type = startedCluster.isClusterStarted() ? CLUSTER_JOIN_SUCCEEDED : CLUSTER_JOIN_FAILED;
-                    sendMessage(senderUUID, type);
+                    sendMessageToMaster(type);
 
                     if (type == CLUSTER_JOIN_FAILED) {
-                        log.warn("Cluster joining failed.", getNodeUUID());
+                        log.warn("Cluster joining failed.", myUUID());
                         System.exit(1);
                     }
                 });
     }
 
-    private void createWorker(String senderUUID) {
+    private void createWorker() {
         log.trace("Creating worker");
         if (dataHolder.getCreatingWorker()) {
             log.info("Worker is already being created");
@@ -95,10 +95,10 @@ public class ClusterParticipantNodeStartMessageListener extends AbstractMessageL
                     dataHolder.setActorSystem(actorSystem);
 
                     ClusterStartMessageType type = actorSystem == null ? CREATE_WORKER_FAILED : CREATE_WORKER_SUCCEEDED;
-                    sendMessage(senderUUID, type);
+                    sendMessageToMaster(type);
 
                     if (type == CREATE_WORKER_FAILED) {
-                        log.warn("Could not create worker.", getNodeUUID());
+                        log.warn("Could not create worker.", myUUID());
                         System.exit(1);
                     }
                 });
@@ -111,14 +111,18 @@ public class ClusterParticipantNodeStartMessageListener extends AbstractMessageL
 
         return ClusterConfigHolder.builder()
                 .withClusterNodes(configHolder.getClusterNodes())
-                .withCurrentNode(nodes().get(getNodeUUID()))
+                .withCurrentNode(nodes().get(myUUID()))
                 .build();
     }
 
-    private void sendMessage(String senderUUID, ClusterStartMessageType type) {
+    private void sendMessageToMaster(ClusterStartMessageType type) {
+        sendMessage("master", type);
+    }
+
+    private void sendMessage(String topicName, ClusterStartMessageType type) {
         log.trace("Send message ", type);
-        topic(senderUUID).publish(ClusterStartMessage.builder()
-                .withSenderUUID(getNodeUUID())
+        topic(topicName).publish(ClusterStartMessage.builder()
+                .withSenderUUID(myUUID())
                 .withClusterStartMessageType(type)
                 .build());
     }

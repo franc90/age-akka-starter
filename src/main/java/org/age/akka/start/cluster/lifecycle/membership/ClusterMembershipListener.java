@@ -1,4 +1,4 @@
-package org.age.akka.start.cluster.manager.members.bus;
+package org.age.akka.start.cluster.lifecycle.membership;
 
 import com.google.common.eventbus.EventBus;
 import com.hazelcast.core.MemberAttributeEvent;

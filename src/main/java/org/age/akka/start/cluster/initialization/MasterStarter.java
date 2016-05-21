@@ -1,12 +1,12 @@
-package org.age.akka.start.cluster.manager;
+package org.age.akka.start.cluster.initialization;
 
-import com.hazelcast.core.MessageListener;
 import org.age.akka.start.cluster.enums.ClusterStatus;
 import org.age.akka.start.cluster.enums.ManagementMapProperties;
 import org.age.akka.start.common.data.ClusterConfigHolder;
 import org.age.akka.start.common.message.ClusterStartMessage;
 import org.age.akka.start.common.message.ClusterStartMessageType;
 import org.age.akka.start.common.utils.HazelcastBean;
+import org.age.akka.start.common.utils.SleepUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,45 +17,44 @@ import javax.inject.Named;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-@Named("org.age.akka.start.startup.manager.ClusterManagerStarter")
-public class ClusterManagerStarter extends HazelcastBean {
+@Named
+public class MasterStarter extends HazelcastBean implements Runnable {
 
-    private static final Logger log = LoggerFactory.getLogger(ClusterManagerStarter.class);
+    private static final Logger log = LoggerFactory.getLogger(MasterStarter.class);
 
     private final int minimalNumberOfClients;
 
     @Inject
-    @Named("org.age.akka.start.startup.manager.message.listener.ClusterManagerStartMessageListener")
-    private MessageListener<ClusterStartMessage> messageListener;
-
-    @Inject
-    public ClusterManagerStarter(@Value("${cluster.minimal.clients:3}") int minimalNumberOfClients) {
+    public MasterStarter(@Value("${cluster.minimal.clients:3}") int minimalNumberOfClients) {
         this.minimalNumberOfClients = minimalNumberOfClients;
     }
 
-    public void startAkkaCluster() throws InterruptedException {
-        waitForSufficientClients();
-        topic(getNodeUUID()).addMessageListener(messageListener);
-        management().put(ManagementMapProperties.STATUS, ClusterStatus.INITIALIZING);
-
-        startClusterCreation();
-
-        while (management().get(ManagementMapProperties.STATUS) != ClusterStatus.WORKING) {
-            log.trace("Waiting for cluster initialization");
-            TimeUnit.MILLISECONDS.sleep(250);
+    @Override
+    public void run() {
+        ClusterStatus clusterStatus = (ClusterStatus) management().get(ManagementMapProperties.STATUS);
+        switch (clusterStatus) {
+            case WAITING_FOR_NODES:
+                waitForRequiredNodesNumber();
+            case INITIALIZING:
+                log.info("Initializing akka cluster");
+                startClusterCreation();
+            case WORKING:
+                log.info("Cluster already initialized");
+                break;
+            case SHUT_DOWN:
+                log.info("Cluster is shut down");
+                System.exit(0);
         }
-
-        log.info("Cluster initialized");
     }
 
-    private void waitForSufficientClients() throws InterruptedException {
+    private void waitForRequiredNodesNumber() {
         while (nodes().size() < minimalNumberOfClients) {
-            TimeUnit.MILLISECONDS.sleep(500);
-            log.info("Not sufficient number of clients. [" + nodes().size() + " of " + minimalNumberOfClients + " ]");
+            SleepUtils.sleep(500);
+            log.info("Waiting for nodes [" + nodes().size() + "/" + minimalNumberOfClients + " ]");
         }
+        management().put(ManagementMapProperties.STATUS, ClusterStatus.INITIALIZING);
     }
 
     private void startClusterCreation() {
@@ -73,8 +72,13 @@ public class ClusterManagerStarter extends HazelcastBean {
         topic(clusterStartNode)
                 .publish(ClusterStartMessage.builder()
                         .withClusterStartMessageType(ClusterStartMessageType.START_CLUSTER)
-                        .withSenderUUID(getNodeUUID())
+                        .withSenderUUID(myUUID())
                         .build());
+
+        while (management().get(ManagementMapProperties.STATUS) != ClusterStatus.WORKING) {
+            log.trace("Waiting for cluster initialization");
+            SleepUtils.sleep(250);
+        }
     }
 
     private List<String> selectClusterNodes() {

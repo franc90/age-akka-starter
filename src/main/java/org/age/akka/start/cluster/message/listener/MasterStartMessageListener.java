@@ -1,4 +1,4 @@
-package org.age.akka.start.cluster.manager.message.listener;
+package org.age.akka.start.cluster.message.listener;
 
 import com.hazelcast.core.Message;
 import org.age.akka.start.cluster.enums.ClusterStatus;
@@ -7,18 +7,32 @@ import org.age.akka.start.common.enums.ClusterProps;
 import org.age.akka.start.common.message.ClusterStartMessage;
 import org.age.akka.start.common.message.ClusterStartMessageType;
 import org.age.akka.start.common.message.listener.AbstractMessageListener;
+import org.age.akka.start.common.utils.MasterUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
 import javax.inject.Named;
 
-@Named("org.age.akka.start.startup.manager.message.listener.ClusterManagerStartMessageListener")
-public class ClusterManagerStartMessageListener extends AbstractMessageListener {
+@Named("masterListener")
+public class MasterStartMessageListener extends AbstractMessageListener {
 
-    private static final Logger log = LoggerFactory.getLogger(ClusterManagerStartMessageListener.class);
+    private static final Logger log = LoggerFactory.getLogger(MasterStartMessageListener.class);
+
+    private final MasterUtils masterUtils;
+
+    @Inject
+    public MasterStartMessageListener(MasterUtils masterUtils) {
+        this.masterUtils = masterUtils;
+    }
 
     @Override
     public void onMessage(Message<ClusterStartMessage> message) {
+        if (masterUtils.isNotMaster()) {
+            log.trace("Received cluster manager message, but node is not cluster master");
+            return;
+        }
+
         ClusterStartMessage clusterStartMessage = message.getMessageObject();
         log.trace("Received message ", clusterStartMessage);
 
@@ -56,7 +70,7 @@ public class ClusterManagerStartMessageListener extends AbstractMessageListener 
                     topic(entry.getKey())
                             .publish(ClusterStartMessage.builder()
                                     .withClusterStartMessageType(msgType)
-                                    .withSenderUUID(getNodeUUID())
+                                    .withSenderUUID(myUUID())
                                     .build());
                 });
 
@@ -71,7 +85,7 @@ public class ClusterManagerStartMessageListener extends AbstractMessageListener 
                 .stream()
                 .forEach(id ->
                         topic(id).publish(ClusterStartMessage.builder()
-                                .withSenderUUID(getNodeUUID())
+                                .withSenderUUID(myUUID())
                                 .withClusterStartMessageType(ClusterStartMessageType.EXIT_APPLICATION)
                                 .build())
                 );

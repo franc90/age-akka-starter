@@ -2,6 +2,7 @@ package org.age.akka.start.common.utils;
 
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
+import com.hazelcast.core.ISet;
 import com.hazelcast.core.ITopic;
 import org.age.akka.start.common.data.AkkaNode;
 import org.age.akka.start.common.message.ClusterStartMessage;
@@ -13,23 +14,27 @@ public abstract class HazelcastBean {
     @Inject
     private HazelcastInstance hazelcastInstance;
 
-    public String getNodeUUID() {
+    protected String myUUID() {
         return hazelcastInstance.getLocalEndpoint().getUuid();
     }
 
-    public HazelcastInstance getHazelcastInstance() {
+    protected HazelcastInstance getHazelcastInstance() {
         return hazelcastInstance;
     }
 
-    public IMap<String, AkkaNode> nodes() {
+    protected ISet<String> clusterMembers() {
+        return hazelcastInstance.getSet("clusterMembers");
+    }
+
+    protected IMap<String, AkkaNode> nodes() {
         return hazelcastInstance.getMap("nodes");
     }
 
-    public IMap<String, Object> management() {
+    protected IMap<String, Object> management() {
         return hazelcastInstance.getMap("management");
     }
 
-    public ITopic<ClusterStartMessage> topic(String nodeId) {
+    protected ITopic<ClusterStartMessage> topic(String nodeId) {
         return hazelcastInstance.getTopic(nodeId.toString());
     }
 
