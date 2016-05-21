@@ -4,8 +4,6 @@ import com.google.common.eventbus.EventBus;
 import com.hazelcast.config.Config;
 import com.hazelcast.config.JoinConfig;
 import com.hazelcast.config.ListenerConfig;
-import com.hazelcast.config.MulticastConfig;
-import com.hazelcast.config.NetworkConfig;
 import com.hazelcast.config.TcpIpConfig;
 import com.hazelcast.core.MembershipListener;
 import org.springframework.beans.factory.annotation.Value;
