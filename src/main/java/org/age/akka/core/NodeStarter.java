@@ -4,14 +4,13 @@ import akka.actor.ActorSystem;
 import akka.actor.Props;
 import akka.cluster.Cluster;
 import com.typesafe.config.Config;
-import org.age.akka.core.actors.proxy.ClusterProxyActor;
 import org.age.akka.core.actors.proxy.WorkerProxyActor;
-import org.age.akka.core.data.StartedCluster;
 import org.age.akka.core.helper.AkkaConfigConstants;
 import org.age.akka.core.helper.AkkaConfigurationCreator;
 import org.age.akka.start.common.data.AkkaNode;
 import org.age.akka.start.common.data.ClusterConfigHolder;
 import org.age.akka.start.common.utils.ClusterDataHolder;
+import org.apache.commons.lang3.RandomUtils;
 import org.jboss.netty.channel.ChannelException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,34 +31,19 @@ public class NodeStarter {
 
     private ActorSystem actorSystem;
 
-    public StartedCluster startCluster(ClusterConfigHolder nodeConfig) {
+    public ActorSystem startCluster(ClusterConfigHolder nodeConfig) {
         actorSystem = createActorSystem(nodeConfig);
 
         log.info("Actor system " + actorSystem);
 
-        Cluster.get(actorSystem)
-                .registerOnMemberUp(() ->
-                        actorSystem.actorOf(Props.create(ClusterProxyActor.class), AkkaConfigConstants.CLUSTER_PROXY_AGENT_NAME)
-                );
-
         clusterDataHolder.setActorSystem(actorSystem);
 
-        return new StartedCluster(actorSystem, true);
-    }
-
-    public StartedCluster joinCluster(ClusterConfigHolder nodeConfig) {
-        System.out.println("\n\n\njoinCluster");
-
-        actorSystem = createActorSystem(nodeConfig);
-        clusterDataHolder.setActorSystem(actorSystem);
-
-        return new StartedCluster(actorSystem, true);
+        return actorSystem;
     }
 
     public ActorSystem createWorker(ClusterConfigHolder nodeConfig) {
-        System.out.println("\n\n\ncreateWorker");
-
         if (actorSystem != null) {
+            log.trace("Actor system already exists");
             return actorSystem;
         }
 
@@ -78,7 +62,7 @@ public class NodeStarter {
 
         Cluster.get(actorSystem)
                 .registerOnMemberUp(() ->
-                        actorSystem.actorOf(Props.create(WorkerProxyActor.class), AkkaConfigConstants.WORKER_PROXY_AGENT_NAME)
+                        actorSystem.actorOf(Props.create(WorkerProxyActor.class), AkkaConfigConstants.WORKER_PROXY_AGENT_NAME + RandomUtils.nextInt(1, 1000))
                 );
 
         clusterDataHolder.setActorSystem(actorSystem);

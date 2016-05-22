@@ -47,16 +47,19 @@ public class SlaveStartMessageListener extends AbstractMessageListener {
         }
     }
 
+    /**
+     * Needs to be run first - first cluster seed nodes needs to start before others
+     */
     private void startCluster() {
         log.trace("Starting cluster");
         ClusterConfigHolder configHolder = updateCurrentNodeConfig((ClusterConfigHolder) management().get(ManagementMapProperties.CLUSTER_CONFIG));
 
         CompletableFuture.supplyAsync(() -> nodeStarter.startCluster(configHolder))
-                .thenAccept(startedCluster -> {
-                    log.info("Started cluster: ", startedCluster);
-                    dataHolder.setActorSystem(startedCluster.getActorSystem());
+                .thenAccept(actorSystem -> {
+                    log.info("Started cluster: ", actorSystem != null);
+                    dataHolder.setActorSystem(actorSystem);
 
-                    ClusterStartMessageType type = startedCluster.isClusterStarted() ? CLUSTER_START_SUCCEEDED : CLUSTER_START_FAILED;
+                    ClusterStartMessageType type = actorSystem != null ? CLUSTER_START_SUCCEEDED : CLUSTER_START_FAILED;
                     sendMessageToMaster(type);
                 });
     }
@@ -65,12 +68,12 @@ public class SlaveStartMessageListener extends AbstractMessageListener {
         log.trace("Joining cluster");
         ClusterConfigHolder configHolder = updateCurrentNodeConfig((ClusterConfigHolder) management().get(ManagementMapProperties.CLUSTER_CONFIG));
 
-        CompletableFuture.supplyAsync(() -> nodeStarter.joinCluster(configHolder))
-                .thenAccept(startedCluster -> {
-                    log.info("Joining cluster: ", startedCluster);
-                    dataHolder.setActorSystem(startedCluster.getActorSystem());
+        CompletableFuture.supplyAsync(() -> nodeStarter.startCluster(configHolder))
+                .thenAccept(actorSystem -> {
+                    log.info("Joining cluster: ", actorSystem);
+                    dataHolder.setActorSystem(actorSystem);
 
-                    ClusterStartMessageType type = startedCluster.isClusterStarted() ? CLUSTER_JOIN_SUCCEEDED : CLUSTER_JOIN_FAILED;
+                    ClusterStartMessageType type = actorSystem != null ? CLUSTER_JOIN_SUCCEEDED : CLUSTER_JOIN_FAILED;
                     sendMessageToMaster(type);
 
                     if (type == CLUSTER_JOIN_FAILED) {
