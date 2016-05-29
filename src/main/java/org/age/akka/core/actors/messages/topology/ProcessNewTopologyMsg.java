@@ -1,7 +1,7 @@
 package org.age.akka.core.actors.messages.topology;
 
 import com.google.common.base.MoreObjects;
-import org.age.akka.core.actors.custom.NodeId;
+import org.age.akka.core.actors.custom.worker.NodeId;
 
 import java.io.Serializable;
 import java.util.Set;

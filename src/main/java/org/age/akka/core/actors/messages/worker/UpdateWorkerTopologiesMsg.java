@@ -1,7 +1,7 @@
 package org.age.akka.core.actors.messages.worker;
 
 import com.google.common.base.MoreObjects;
-import org.age.akka.core.actors.custom.NodeId;
+import org.age.akka.core.actors.custom.worker.NodeId;
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
 

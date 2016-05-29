@@ -1,4 +1,4 @@
-package org.age.akka.core.actors.custom;
+package org.age.akka.core.actors.custom.worker;
 
 import akka.actor.Address;
 import com.google.common.base.MoreObjects;

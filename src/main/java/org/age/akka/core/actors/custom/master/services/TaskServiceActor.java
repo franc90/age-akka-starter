@@ -32,12 +32,31 @@ public class TaskServiceActor extends AbstractActor {
     private void updateTaskState(TaskStateMsg msg) {
         log.info("update task state " + msg);
         switch (msg.getType()) {
+            case START:
+                startWorkers();
+                break;
             case PAUSE:
                 pauseWorkers();
                 break;
             case RESUME:
                 resumeWorkers();
+                break;
         }
+    }
+
+    private void startWorkers() {
+        if (state == State.INIT || state == State.CANCELLED) {
+            log.info("starting workers");
+            sendStartWorkerMessages();
+            state = State.STARTED_OR_RESUMED;
+        } else {
+            log.info("tasks do not need starting");
+        }
+    }
+
+    private void sendStartWorkerMessages() {
+        log.info("send start all workers message");
+        findWorkerService().ifPresent(workerService -> workerService.tell(new TaskStateMsg(TaskStateMsg.Type.START), self()));
     }
 
     private void pauseWorkers() {

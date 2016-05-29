@@ -5,7 +5,7 @@ import akka.cluster.Cluster;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import akka.japi.pf.ReceiveBuilder;
-import org.age.akka.core.actors.custom.NodeId;
+import org.age.akka.core.actors.custom.worker.NodeId;
 import org.age.akka.core.actors.messages.topology.NewTopologyMsg;
 import org.age.akka.core.actors.messages.topology.ProcessNewTopologyMsg;
 import org.jgrapht.DirectedGraph;

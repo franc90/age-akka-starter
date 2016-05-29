@@ -60,6 +60,9 @@ MasterActor extends AbstractActor {
         topologyService = context().actorOf(Props.create(TopologyServiceActor.class), "topologyService");
         taskService = context().actorOf(Props.create(TaskServiceActor.class), "taskService");
         lifecycleService = context().actorOf(Props.create(LifecycleServiceActor.class), "lifecycleService");
+        context().watch(workerService);
+        context().watch(topologyService);
+        context().watch(taskService);
         context().watch(lifecycleService);
     }
 
@@ -108,6 +111,7 @@ MasterActor extends AbstractActor {
         if (lifecycleMessages.isEmpty()) {
             log.info("no more lifecycle messages - resume task if paused");
             taskService.tell(new TaskStateMsg(TaskStateMsg.Type.RESUME), self());
+            taskService.tell(new TaskStateMsg(TaskStateMsg.Type.START), self());
             return;
         }
 

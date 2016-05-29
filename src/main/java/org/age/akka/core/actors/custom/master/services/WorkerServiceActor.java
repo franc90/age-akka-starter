@@ -10,8 +10,8 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import akka.japi.pf.ReceiveBuilder;
 import akka.remote.RemoteScope;
-import org.age.akka.core.actors.custom.NodeActor;
-import org.age.akka.core.actors.custom.NodeId;
+import org.age.akka.core.actors.custom.worker.NodeActor;
+import org.age.akka.core.actors.custom.worker.NodeId;
 import org.age.akka.core.actors.messages.node.UpdateNodeTopologyMsg;
 import org.age.akka.core.actors.messages.task.TaskStateMsg;
 import org.age.akka.core.actors.messages.worker.AddMemberMsg;
@@ -53,6 +53,15 @@ public class WorkerServiceActor extends AbstractActor {
 
     private void changeTaskState(TaskStateMsg msg) {
         log.info("sending to " + memberNodes.size() + " member nodes " + msg.getType());
+        switch (msg.getType()) {
+            case START:
+                break;
+            case RESUME:
+                break;
+            case PAUSE:
+                break;
+        }
+
         if (msg.getType() == TaskStateMsg.Type.RESUME) {
 //            memberNodes.values().forEach(node -> node.tell(ResumeWorkMessage.class, self()));
         } else if (msg.getType() == TaskStateMsg.Type.PAUSE) {
@@ -65,6 +74,7 @@ public class WorkerServiceActor extends AbstractActor {
         Address address = msg.getActorAddress();
         NodeId id = NodeId.fromAddress(address);
         log.info("Create member node at " + id);
+
 
         Deploy remoteDeploy = new Deploy(new RemoteScope(address));
         ActorRef node = context().system().actorOf(Props.create(NodeActor.class).withDeploy(remoteDeploy));
