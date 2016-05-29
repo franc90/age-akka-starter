@@ -4,13 +4,11 @@ import akka.actor.ActorSystem;
 import akka.actor.Props;
 import akka.cluster.Cluster;
 import com.typesafe.config.Config;
-import org.age.akka.core.actors.proxy.WorkerProxyActor;
-import org.age.akka.core.helper.AkkaConfigConstants;
+import org.age.akka.core.actors.custom.master.MasterActor;
 import org.age.akka.core.helper.AkkaConfigurationCreator;
 import org.age.akka.start.common.data.AkkaNode;
 import org.age.akka.start.common.data.ClusterConfigHolder;
 import org.age.akka.start.common.utils.ClusterDataHolder;
-import org.apache.commons.lang3.RandomUtils;
 import org.jboss.netty.channel.ChannelException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +34,9 @@ public class NodeStarter {
 
         log.info("Actor system " + actorSystem);
 
-        clusterDataHolder.setActorSystem(actorSystem);
+        Cluster
+                .get(actorSystem)
+                .registerOnMemberUp(() -> actorSystem.actorOf(Props.create(MasterActor.class), "master"));
 
         return actorSystem;
     }
@@ -60,12 +60,6 @@ public class NodeStarter {
             }
         }
 
-        Cluster.get(actorSystem)
-                .registerOnMemberUp(() ->
-                        actorSystem.actorOf(Props.create(WorkerProxyActor.class), AkkaConfigConstants.WORKER_PROXY_AGENT_NAME + RandomUtils.nextInt(1, 1000))
-                );
-
-        clusterDataHolder.setActorSystem(actorSystem);
         return actorSystem;
     }
 
@@ -83,6 +77,8 @@ public class NodeStarter {
         AkkaUtils.setActorSystem(actorSystem);
 
         log.trace("Returning created actor system " + actorSystem);
+        clusterDataHolder.setActorSystem(actorSystem);
+
         return actorSystem;
     }
 }

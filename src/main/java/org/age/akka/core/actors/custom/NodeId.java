@@ -1,0 +1,65 @@
+package org.age.akka.core.actors.custom;
+
+import static scala.compat.java8.JFunction.*;
+
+import akka.actor.Address;
+import com.google.common.base.MoreObjects;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
+public class NodeId {
+
+    private final String hostname;
+
+    private final int port;
+
+    public NodeId(String hostname, int port) {
+        this.hostname = hostname;
+        this.port = port;
+    }
+
+    public String getHostname() {
+        return hostname;
+    }
+
+    public int getPort() {
+        return port;
+    }
+
+    public static NodeId fromAddress(Address address) {
+        String host = address.host().getOrElse(func(() -> ""));
+        int port = address.port().getOrElse(func(() -> 0));
+
+        return new NodeId(host, port);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+
+        if (o == null || getClass() != o.getClass()) return false;
+
+        NodeId nodeId = (NodeId) o;
+
+        return new EqualsBuilder()
+                .append(hostname, nodeId.hostname)
+                .append(port, nodeId.port)
+                .isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder(17, 37)
+                .append(hostname)
+                .append(port)
+                .toHashCode();
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("hostname", hostname)
+                .add("port", port)
+                .toString();
+    }
+}

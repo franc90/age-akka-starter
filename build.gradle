@@ -37,6 +37,7 @@ dependencies {
     testCompile 'org.assertj:assertj-guava:+'
     compile 'com.typesafe.akka:akka-remote_2.11:2.4.6'
     compile 'com.typesafe.akka:akka-cluster_2.11:2.4.6'
+    compile group: 'org.scala-lang.modules', name: 'scala-java8-compat_2.11', version: '0.7.0'
     compile 'commons-collections:commons-collections:3.2.1'
     compile 'com.google.guava:guava:+'
     compile 'org.slf4j:slf4j-api:+'

@@ -19,7 +19,6 @@ public class ApplicationStarter implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        System.out.println("\n\nAKKA CLUSTER STARTER:");
         clusterNode.startWork();
     }
 }

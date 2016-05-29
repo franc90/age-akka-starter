@@ -1,7 +1,13 @@
 package org.age.akka.start.cluster.initialization;
 
+import akka.actor.ActorRef;
+import akka.actor.ActorSelection;
+import akka.actor.ActorSystem;
+import org.age.akka.core.AkkaUtils;
+import org.age.akka.core.actors.messages.HelloMessage;
 import org.age.akka.start.cluster.enums.ClusterStatus;
 import org.age.akka.start.cluster.enums.ManagementMapProperties;
+import org.age.akka.start.common.data.AkkaNode;
 import org.age.akka.start.common.data.ClusterConfigHolder;
 import org.age.akka.start.common.message.ClusterStartMessage;
 import org.age.akka.start.common.message.ClusterStartMessageType;
@@ -41,12 +47,43 @@ public class MasterStarter extends HazelcastBean implements Runnable {
                 log.info("Initializing akka cluster");
                 startClusterCreation();
             case WORKING:
+                sayHello();
                 log.info("Cluster already initialized");
                 break;
             case SHUT_DOWN:
                 log.info("Cluster is shut down");
                 System.exit(0);
         }
+    }
+
+    private void sayHello() {
+        SleepUtils.sleep(1000L);
+        ActorSystem actorSystem;
+        do {
+            actorSystem = AkkaUtils.getActorSystem();
+            log.info("Actor system " + actorSystem);
+        } while (actorSystem == null);
+
+
+        ActorSelection master;
+        do {
+            String masterActorPath = buildMasterActorPath();
+            master = actorSystem.actorSelection(masterActorPath);
+            log.info("Master actor ref " + master);
+        } while (master == null);
+
+        master.tell(new HelloMessage("some weird text"), ActorRef.noSender());
+    }
+
+    private String buildMasterActorPath() {
+        ClusterConfigHolder config = AkkaUtils.getConfig();
+        AkkaNode akkaNode = config.getClusterNodes().get(0);
+
+        return "akka.tcp://age3@" +
+                akkaNode.getHostname().getHostname() +
+                ":" +
+                akkaNode.getPort().getPort() +
+                "/user/master";
     }
 
     private void waitForRequiredNodesNumber() {
