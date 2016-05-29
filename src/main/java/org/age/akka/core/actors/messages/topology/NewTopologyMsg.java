@@ -7,11 +7,11 @@ import org.jgrapht.graph.DefaultEdge;
 
 import java.io.Serializable;
 
-public class TopologyUpdatedMsg implements Serializable {
+public class NewTopologyMsg implements Serializable {
 
     private final DirectedGraph<NodeId, DefaultEdge> topology;
 
-    public TopologyUpdatedMsg(DirectedGraph<NodeId, DefaultEdge> topology) {
+    public NewTopologyMsg(DirectedGraph<NodeId, DefaultEdge> topology) {
         this.topology = topology;
     }
 
@@ -20,9 +20,11 @@ public class TopologyUpdatedMsg implements Serializable {
     }
 
     @Override
-    public String toString() {
+    public String
+    toString() {
         return MoreObjects.toStringHelper(this)
                 .add("topology", topology)
                 .toString();
     }
 }
+

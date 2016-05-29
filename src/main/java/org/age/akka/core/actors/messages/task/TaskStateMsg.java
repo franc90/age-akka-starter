@@ -4,11 +4,11 @@ import com.google.common.base.MoreObjects;
 
 import java.io.Serializable;
 
-public class TaskMsg implements Serializable {
+public class TaskStateMsg implements Serializable {
 
     private final Type type;
 
-    public TaskMsg(Type type) {
+    public TaskStateMsg(Type type) {
         this.type = type;
     }
 

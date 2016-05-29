@@ -1,4 +1,4 @@
-package org.age.akka.core.actors.messages.topology;
+package org.age.akka.core.actors.messages.node;
 
 import com.google.common.base.MoreObjects;
 import org.age.akka.core.actors.custom.NodeId;
@@ -7,11 +7,11 @@ import org.jgrapht.graph.DefaultEdge;
 
 import java.io.Serializable;
 
-public class TopologyUpdatedMsg implements Serializable {
+public class UpdateNodeTopologyMsg implements Serializable {
 
     private final DirectedGraph<NodeId, DefaultEdge> topology;
 
-    public TopologyUpdatedMsg(DirectedGraph<NodeId, DefaultEdge> topology) {
+    public UpdateNodeTopologyMsg(DirectedGraph<NodeId, DefaultEdge> topology) {
         this.topology = topology;
     }
 
@@ -24,5 +24,7 @@ public class TopologyUpdatedMsg implements Serializable {
         return MoreObjects.toStringHelper(this)
                 .add("topology", topology)
                 .toString();
+
     }
+
 }

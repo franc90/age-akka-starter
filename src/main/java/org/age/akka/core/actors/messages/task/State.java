@@ -3,9 +3,8 @@ package org.age.akka.core.actors.messages.task;
 public enum  State {
 
     INIT,
-    STARTED,
+    STARTED_OR_RESUMED,
     PAUSED,
-    RESUMED,
     CANCELLED
 
 }

@@ -8,20 +8,25 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import akka.japi.pf.ReceiveBuilder;
 import org.age.akka.core.actors.custom.master.services.LifecycleServiceActor;
+import org.age.akka.core.actors.custom.master.services.TaskServiceActor;
 import org.age.akka.core.actors.custom.master.services.TopologyServiceActor;
 import org.age.akka.core.actors.custom.master.services.WorkerServiceActor;
 import org.age.akka.core.actors.messages.lifecycle.LifecycleMsg;
 import org.age.akka.core.actors.messages.task.State;
-import org.age.akka.core.actors.messages.task.TaskMsg;
+import org.age.akka.core.actors.messages.task.TaskStateMsg;
 import org.age.akka.core.actors.messages.topology.TopologyUpdatedMsg;
 import org.age.akka.core.actors.messages.topology.UpdateTopologyMsg;
+import org.age.akka.core.actors.messages.worker.AddMemberMsg;
+import org.age.akka.core.actors.messages.worker.MemberStateUpdateMsg;
+import org.age.akka.core.actors.messages.worker.RemoveMemberMsg;
 import org.age.akka.core.actors.messages.worker.UpdateWorkerTopologiesMsg;
 import org.age.akka.core.actors.messages.worker.WorkersTopologiesUpdatedMsg;
 
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-public class MasterActor extends AbstractActor {
+public class
+MasterActor extends AbstractActor {
 
     private final LoggingAdapter log = Logging.getLogger(context().system(), this);
 
@@ -41,7 +46,7 @@ public class MasterActor extends AbstractActor {
         log.info("init master actor!! " + self().path());
 
         receive(ReceiveBuilder
-                .match(LifecycleMsg.class, this::lifecycleMessage)
+                .match(LifecycleMsg.class, this::processLifecycleMessage)
                 .match(State.class, this::taskStateUpdated)
                 .match(TopologyUpdatedMsg.class, this::topologyUpdated)
                 .match(WorkersTopologiesUpdatedMsg.class, this::resumeTask)
@@ -53,27 +58,35 @@ public class MasterActor extends AbstractActor {
     public void preStart() throws Exception {
         workerService = context().actorOf(Props.create(WorkerServiceActor.class), "workerService");
         topologyService = context().actorOf(Props.create(TopologyServiceActor.class), "topologyService");
-        taskService = context().actorOf(Props.create(TopologyServiceActor.class), "taskService");
+        taskService = context().actorOf(Props.create(TaskServiceActor.class), "taskService");
         lifecycleService = context().actorOf(Props.create(LifecycleServiceActor.class), "lifecycleService");
         context().watch(lifecycleService);
     }
 
-    private void lifecycleMessage(LifecycleMsg msg) throws Exception {
-        log.info("lifecycleMessage ", msg);
+    private void processLifecycleMessage(LifecycleMsg msg) throws Exception {
+        log.info("new lifecycle message: " + msg);
 
         lifecycleMessages.add(msg);
         if (lifecycleMessages.size() > 1) {
-            log.info("Lifecycle messages awaiting");
+            log.info("already processing lifecycle message. Adding this one to queue");
             return;
         }
 
-        updateMembership(msg);
+        updateNodesMembership(msg);
     }
 
-    private void updateMembership(LifecycleMsg msg) throws Exception {
-        log.info("updateMembership membership");
-        taskService.tell(new TaskMsg(TaskMsg.Type.PAUSE), self());
-        workerService.tell(new LifecycleMsg(msg.getType(), msg.getAddress()), self());
+    private void updateNodesMembership(LifecycleMsg msg) throws Exception {
+        log.info("update nodes membership based on " + msg);
+        taskService.tell(new TaskStateMsg(TaskStateMsg.Type.PAUSE), self());
+        MemberStateUpdateMsg workerMsg = prepareMessage(msg);
+        workerService.tell(workerMsg, self());
+    }
+
+    private MemberStateUpdateMsg prepareMessage(LifecycleMsg msg) {
+        if (msg.getType() == LifecycleMsg.Type.REMOVE) {
+            return new RemoveMemberMsg(msg.getAddress());
+        }
+        return new AddMemberMsg(msg.getAddress());
     }
 
     private void taskStateUpdated(State taskState) {
@@ -87,21 +100,20 @@ public class MasterActor extends AbstractActor {
 
     private void topologyUpdated(TopologyUpdatedMsg msg) {
         log.info("topology updated");
-        workerService.tell(new UpdateWorkerTopologiesMsg(), self());
+        workerService.tell(new UpdateWorkerTopologiesMsg(msg.getTopology()), self());
     }
 
     private void resumeTask(WorkersTopologiesUpdatedMsg msg) throws Exception {
-        log.info("resume task");
         lifecycleMessages.poll();
         if (lifecycleMessages.isEmpty()) {
-            log.info("no more tasks - resume");
-            taskService.tell(new TaskMsg(TaskMsg.Type.RESUME), self());
+            log.info("no more lifecycle messages - resume task if paused");
+            taskService.tell(new TaskStateMsg(TaskStateMsg.Type.RESUME), self());
             return;
         }
 
-        log.info("tasks yet exist - carry on");
+        log.info("more tasks queued, update nodes membership");
         LifecycleMsg lifecycleMsg = lifecycleMessages.peek();
-        updateMembership(lifecycleMsg);
+        updateNodesMembership(lifecycleMsg);
     }
 
     private void startTasks() {

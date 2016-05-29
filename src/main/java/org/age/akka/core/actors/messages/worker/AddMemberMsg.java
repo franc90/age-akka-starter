@@ -1,4 +1,4 @@
-package org.age.akka.core.actors.messages;
+package org.age.akka.core.actors.messages.worker;
 
 import akka.actor.Address;
 import com.google.common.base.MoreObjects;
@@ -7,7 +7,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.io.Serializable;
 
-public class AddMemberMsg implements Serializable {
+public class AddMemberMsg implements MemberStateUpdateMsg {
 
     private final Address actorAddress;
 

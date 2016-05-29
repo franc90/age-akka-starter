@@ -1,13 +1,11 @@
-package org.age.akka.core.actors.messages;
+package org.age.akka.core.actors.messages.worker;
 
 import akka.actor.Address;
 import com.google.common.base.MoreObjects;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-import java.io.Serializable;
-
-public class RemoveMemberMsg implements Serializable {
+public class RemoveMemberMsg implements MemberStateUpdateMsg {
 
     private final Address address;
 

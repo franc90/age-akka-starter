@@ -1,13 +1,15 @@
 package org.age.akka.core.actors.custom;
 
-import static scala.compat.java8.JFunction.*;
-
 import akka.actor.Address;
 import com.google.common.base.MoreObjects;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-public class NodeId {
+import java.io.Serializable;
+
+import static scala.compat.java8.JFunction.func;
+
+public class NodeId implements Serializable, Comparable<NodeId> {
 
     private final String hostname;
 
@@ -61,5 +63,25 @@ public class NodeId {
                 .add("hostname", hostname)
                 .add("port", port)
                 .toString();
+    }
+
+    @Override
+    public int compareTo(NodeId id) {
+        if (this == id) {
+            return 0;
+        }
+
+        int result = this.hostname.compareTo(id.hostname);
+        if (result != 0) {
+            return result;
+        }
+
+        if (this.port < id.port) {
+            return -1;
+        }
+        if (this.port > id.port) {
+            return 1;
+        }
+        return 0;
     }
 }
