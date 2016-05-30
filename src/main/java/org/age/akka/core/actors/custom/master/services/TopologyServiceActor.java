@@ -8,6 +8,7 @@ import akka.cluster.Cluster;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import akka.japi.pf.ReceiveBuilder;
+import org.age.akka.core.actors.custom.master.services.topology.RingTopologyProcessorActor;
 import org.age.akka.core.actors.custom.worker.NodeId;
 import org.age.akka.core.actors.messages.topology.NewTopologyMsg;
 import org.age.akka.core.actors.messages.topology.ProcessNewTopologyMsg;
@@ -42,7 +43,7 @@ public class TopologyServiceActor extends AbstractActor {
 
     @Override
     public void preStart() throws Exception {
-        topologyProcessor = context().actorOf(Props.create(TopologyProcessorActor.class), "topologyProcessor");
+        topologyProcessor = context().actorOf(Props.create(RingTopologyProcessorActor.class), "topologyProcessor");
         context().watch(topologyProcessor);
     }
 
