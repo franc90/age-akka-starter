@@ -23,16 +23,21 @@ public class SpringConfiguration {
     @Value("#{'${network.tcp.members:127.0.0.1}'.split(',')}")
     private List<String> tcpMembers;
 
+    @Value("${network.use.multicast.discovery:false}")
+    private boolean useMulticastDiscovery;
+
     @Bean
     public Config hazelcastConfig(MembershipListener membershipListener) {
         Config config = new Config();
 
         JoinConfig join = config.getNetworkConfig().getJoin();
-        join.getMulticastConfig().setEnabled(false);
+        join.getMulticastConfig().setEnabled(useMulticastDiscovery);
 
-        TcpIpConfig tcpIpConfig = join.getTcpIpConfig();
-        tcpIpConfig.setEnabled(true);
-        tcpMembers.forEach(tcpIpConfig::addMember);
+        if (!useMulticastDiscovery) {
+            TcpIpConfig tcpIpConfig = join.getTcpIpConfig();
+            tcpIpConfig.setEnabled(true);
+            tcpMembers.forEach(tcpIpConfig::addMember);
+        }
 
         config.getProperties().put("hazelcast.logging.type", "slf4j");
         config.getProperties().put("hazelcast.shutdownhook.enabled", "false");
