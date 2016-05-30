@@ -9,7 +9,6 @@ import akka.japi.pf.UnitPFBuilder;
 import akka.pattern.Patterns;
 import akka.util.Timeout;
 import org.age.akka.core.actors.messages.node.IsTaskInterruptedMsg;
-import org.age.akka.core.actors.messages.node.ResumeTaskMsg;
 import org.age.akka.core.actors.messages.node.StartTaskMsg;
 import org.age.akka.core.actors.messages.node.TaskInterruptedResponseMsg;
 import scala.concurrent.Await;
@@ -31,15 +30,15 @@ public abstract class TaskActor extends AbstractActor {
     public UnitPFBuilder<Object> getDefaultReceiveBuilder() {
         return ReceiveBuilder
                 .match(StartTaskMsg.class, this::startTask)
-                .match(ResumeTaskMsg.class, this::resumeTask)
                 .matchAny(msg -> log.info("Received not supported message {}", msg));
     }
 
     protected void startTask(StartTaskMsg msg) throws Exception {
-        doTask();
-    }
-
-    protected void resumeTask(ResumeTaskMsg msg) throws Exception {
+        log.info("received start task message " + msg);
+        if (paused) {
+            log.info("unpausing task");
+            paused = false;
+        }
         doTask();
     }
 

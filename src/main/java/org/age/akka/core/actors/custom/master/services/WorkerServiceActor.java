@@ -12,6 +12,8 @@ import akka.japi.pf.ReceiveBuilder;
 import akka.remote.RemoteScope;
 import org.age.akka.core.actors.custom.worker.NodeActor;
 import org.age.akka.core.actors.custom.worker.NodeId;
+import org.age.akka.core.actors.messages.node.InterruptTaskMsg;
+import org.age.akka.core.actors.messages.node.StartTaskMsg;
 import org.age.akka.core.actors.messages.node.UpdateNodeTopologyMsg;
 import org.age.akka.core.actors.messages.task.TaskStateMsg;
 import org.age.akka.core.actors.messages.worker.AddMemberMsg;
@@ -55,17 +57,15 @@ public class WorkerServiceActor extends AbstractActor {
         log.info("sending to " + memberNodes.size() + " member nodes " + msg.getType());
         switch (msg.getType()) {
             case START:
-                break;
             case RESUME:
+                memberNodes.values().forEach(node -> node.tell(new StartTaskMsg(), self()));
                 break;
             case PAUSE:
+                memberNodes.values().forEach(node -> node.tell(new InterruptTaskMsg(true, false), self()));
                 break;
-        }
-
-        if (msg.getType() == TaskStateMsg.Type.RESUME) {
-//            memberNodes.values().forEach(node -> node.tell(ResumeWorkMessage.class, self()));
-        } else if (msg.getType() == TaskStateMsg.Type.PAUSE) {
-//            memberNodes.values().forEach(node -> node.tell(PauseWorkMessage.class, self()));
+            case CANCEL:
+                memberNodes.values().forEach(context()::stop);
+                break;
         }
     }
 

@@ -1,5 +1,6 @@
 package org.age.akka.core.actors.messages.node;
 
+import com.google.common.base.MoreObjects;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
@@ -46,4 +47,11 @@ public class InterruptTaskMsg implements Serializable {
                 .toHashCode();
     }
 
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("pause", pause)
+                .add("cancel", cancel)
+                .toString();
+    }
 }

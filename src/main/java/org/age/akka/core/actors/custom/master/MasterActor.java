@@ -12,7 +12,7 @@ import org.age.akka.core.actors.custom.master.services.TaskServiceActor;
 import org.age.akka.core.actors.custom.master.services.TopologyServiceActor;
 import org.age.akka.core.actors.custom.master.services.WorkerServiceActor;
 import org.age.akka.core.actors.messages.lifecycle.LifecycleMsg;
-import org.age.akka.core.actors.messages.task.State;
+import org.age.akka.core.actors.messages.task.StateMsg;
 import org.age.akka.core.actors.messages.task.TaskStateMsg;
 import org.age.akka.core.actors.messages.topology.TopologyUpdatedMsg;
 import org.age.akka.core.actors.messages.topology.UpdateTopologyMsg;
@@ -47,7 +47,7 @@ MasterActor extends AbstractActor {
 
         receive(ReceiveBuilder
                 .match(LifecycleMsg.class, this::processLifecycleMessage)
-                .match(State.class, this::taskStateUpdated)
+                .match(StateMsg.class, this::taskStateUpdated)
                 .match(TopologyUpdatedMsg.class, this::topologyUpdated)
                 .match(WorkersTopologiesUpdatedMsg.class, this::resumeTask)
                 .matchAny(msg -> log.info("Received not supported message {}", msg))
@@ -92,9 +92,9 @@ MasterActor extends AbstractActor {
         return new AddMemberMsg(msg.getAddress());
     }
 
-    private void taskStateUpdated(State taskState) {
+    private void taskStateUpdated(StateMsg taskStateMsg) {
         log.info("task state updated");
-        if (taskState == State.PAUSED) {
+        if (taskStateMsg == StateMsg.PAUSED) {
             topologyService.tell(new UpdateTopologyMsg(), self());
             return;
         }
@@ -111,7 +111,6 @@ MasterActor extends AbstractActor {
         if (lifecycleMessages.isEmpty()) {
             log.info("no more lifecycle messages - resume task if paused");
             taskService.tell(new TaskStateMsg(TaskStateMsg.Type.RESUME), self());
-            taskService.tell(new TaskStateMsg(TaskStateMsg.Type.START), self());
             return;
         }
 

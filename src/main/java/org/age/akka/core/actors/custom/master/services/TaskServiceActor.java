@@ -6,7 +6,7 @@ import akka.cluster.Cluster;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import akka.japi.pf.ReceiveBuilder;
-import org.age.akka.core.actors.messages.task.State;
+import org.age.akka.core.actors.messages.task.StateMsg;
 import org.age.akka.core.actors.messages.task.TaskStateMsg;
 import org.age.akka.core.actors.messages.worker.WorkersPausedMsg;
 
@@ -18,7 +18,7 @@ public class TaskServiceActor extends AbstractActor {
 
     private final Cluster cluster = Cluster.get(getContext().system());
 
-    private State state = State.INIT;
+    private StateMsg state = StateMsg.INIT;
 
     public TaskServiceActor() {
         receive(ReceiveBuilder
@@ -45,10 +45,10 @@ public class TaskServiceActor extends AbstractActor {
     }
 
     private void startWorkers() {
-        if (state == State.INIT || state == State.CANCELLED) {
+        if (state == StateMsg.INIT || state == StateMsg.CANCELLED) {
             log.info("starting workers");
             sendStartWorkerMessages();
-            state = State.STARTED_OR_RESUMED;
+            state = StateMsg.STARTED_OR_RESUMED;
         } else {
             log.info("tasks do not need starting");
         }
@@ -60,14 +60,14 @@ public class TaskServiceActor extends AbstractActor {
     }
 
     private void pauseWorkers() {
-        if (state == State.STARTED_OR_RESUMED) {
+        if (state == StateMsg.STARTED_OR_RESUMED) {
             log.info("task needs pausing");
             sendPauseWorkerMessages();
-            state = State.PAUSED;
+            state = StateMsg.PAUSED;
         } else {
             log.info("task " + state + ". No pausing needed. Replying master with PAUSED");
-            workersPaused(null);
         }
+        workersPaused(null);
     }
 
     private void sendPauseWorkerMessages() {
@@ -77,15 +77,15 @@ public class TaskServiceActor extends AbstractActor {
 
     private void workersPaused(WorkersPausedMsg msg) {
         log.info("all workers paused - inform master");
-        context().parent().tell(State.PAUSED, self());
+        context().parent().tell(StateMsg.PAUSED, self());
 
     }
 
     private void resumeWorkers() {
-        if (state == State.PAUSED) {
+        if (state == StateMsg.PAUSED || state == StateMsg.INIT || state == StateMsg.CANCELLED) {
             log.info("workers paused. Resume working");
             sendResumeWorkerMessages();
-            state = State.STARTED_OR_RESUMED;
+            state = StateMsg.STARTED_OR_RESUMED;
         } else {
             log.info("no resuming needed in " + state);
         }

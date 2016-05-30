@@ -6,10 +6,9 @@ import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import akka.japi.pf.ReceiveBuilder;
-import org.age.akka.core.actors.custom.master.services.WorkerServiceActor;
+import org.age.akka.core.actors.custom.worker.task.SoutTaskActor;
 import org.age.akka.core.actors.messages.node.InterruptTaskMsg;
 import org.age.akka.core.actors.messages.node.IsTaskInterruptedMsg;
-import org.age.akka.core.actors.messages.node.ResumeTaskMsg;
 import org.age.akka.core.actors.messages.node.StartTaskMsg;
 import org.age.akka.core.actors.messages.node.TaskInterruptedResponseMsg;
 import org.age.akka.core.actors.messages.node.UpdateNodeTopologyMsg;
@@ -35,7 +34,6 @@ public class NodeActor extends AbstractActor {
 
         receive(ReceiveBuilder
                 .match(StartTaskMsg.class, this::startTask)
-                .match(ResumeTaskMsg.class, this::resumeTask)
                 .match(UpdateNodeTopologyMsg.class, this::updateTopology)
                 .match(InterruptTaskMsg.class, this::interruptTask)
                 .match(IsTaskInterruptedMsg.class, this::getTaskInterruptedStatus)
@@ -43,32 +41,35 @@ public class NodeActor extends AbstractActor {
                 .build());
     }
 
-    private void startTask(StartTaskMsg msg) {
-        if (started) {
-            log.info("task already started");
-            return;
-        }
-        task.tell(new StartTaskMsg(), self());
-        started = true;
-    }
-
-    private void resumeTask(ResumeTaskMsg msg) {
-        if (cancel) {
-            log.info("task cancelled - cannot resume");
-            return;
-        }
-        if (!pause) {
-            log.info("task not paused - cannot resume");
-            return;
-        }
-        task.tell(new ResumeTaskMsg(), self());
-        pause = false;
+    @Override
+    public void preStart() throws Exception {
+        task = context().actorOf(Props.create(SoutTaskActor.class), "task");
+        context().watch(task);
+        log.info("Joined this cluster because I make poor life choices.");
     }
 
     @Override
-    public void preStart() throws Exception {
-        task = context().actorOf(Props.create(WorkerServiceActor.class), "task");
-        context().watch(task);
+    public void postStop() throws Exception {
+        context().unwatch(task);
+        context().stop(task);
+    }
+
+    private void startTask(StartTaskMsg msg) {
+        if (started) {
+            if (cancel) {
+                log.info("task cancelled - cannot resume");
+                return;
+            }
+            if (!pause) {
+                log.info("task not paused - cannot resume");
+                return;
+            }
+        }
+        log.info("start task message - or resume if was paused");
+        log.info("paused = " + pause);
+        task.tell(new StartTaskMsg(), self());
+        pause = false;
+        started = true;
     }
 
     private void updateTopology(UpdateNodeTopologyMsg msg) {

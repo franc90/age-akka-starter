@@ -4,9 +4,14 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import org.age.akka.start.common.utils.SleepUtils;
 
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+
 public class SoutTaskActor extends TaskActor {
 
     private final LoggingAdapter log = Logging.getLogger(context().system(), this);
+
+    private final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
 
     private int counter = 0;
 
@@ -16,8 +21,10 @@ public class SoutTaskActor extends TaskActor {
     }
 
     protected void doTask() throws Exception {
+        log.info("start doing task");
         while (true) {
-            System.out.println(++counter + ". attempt to write to sout");
+            String time = timeFormatter.format(ZonedDateTime.now());
+            System.out.println(++counter + ". attempt to sout at " + time + ". Because YOLO");
             SleepUtils.sleep(1000L);
             checkIfInterrupted();
             if (paused || cancelled) {
