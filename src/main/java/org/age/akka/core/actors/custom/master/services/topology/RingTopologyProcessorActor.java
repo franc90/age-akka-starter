@@ -24,7 +24,7 @@ public class RingTopologyProcessorActor extends AbstractTopologyProcessorActor {
 
     @Override
     protected DirectedGraph<NodeId, DefaultEdge> processTopology(Set<NodeId> nodeIds) {
-        log.info("process new topology with nodes " + nodeIds.size());
+        log.info("process new topology with nodes {}", nodeIds.size());
 
         DefaultDirectedGraph<NodeId, DefaultEdge> graph = new DefaultDirectedGraph<>(DefaultEdge.class);
         nodeIds.forEach(graph::addVertex);

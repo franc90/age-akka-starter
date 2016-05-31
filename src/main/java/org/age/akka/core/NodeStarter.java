@@ -5,9 +5,12 @@ import akka.actor.Props;
 import akka.cluster.Cluster;
 import com.typesafe.config.Config;
 import org.age.akka.core.actors.custom.master.MasterActor;
+import org.age.akka.core.actors.custom.worker.NodeActor;
 import org.age.akka.core.helper.AkkaConfigurationCreator;
 import org.age.akka.start.common.data.AkkaNode;
 import org.age.akka.start.common.data.ClusterConfigHolder;
+import org.age.akka.start.common.data.Hostname;
+import org.age.akka.start.common.data.Port;
 import org.age.akka.start.common.utils.ClusterDataHolder;
 import org.jboss.netty.channel.ChannelException;
 import org.slf4j.Logger;
@@ -36,7 +39,11 @@ public class NodeStarter {
 
         Cluster
                 .get(actorSystem)
-                .registerOnMemberUp(() -> actorSystem.actorOf(Props.create(MasterActor.class), "master"));
+                .registerOnMemberUp(() -> {
+                    String nodeName = createNodeName(nodeConfig);
+                    actorSystem.actorOf(Props.create(MasterActor.class), "master");
+                    actorSystem.actorOf(Props.create(NodeActor.class), nodeName);
+                });
 
         return actorSystem;
     }
@@ -60,6 +67,13 @@ public class NodeStarter {
             }
         }
 
+        Cluster
+                .get(actorSystem)
+                .registerOnMemberUp(() -> {
+                    String nodeName = createNodeName(nodeConfig);
+                    actorSystem.actorOf(Props.create(NodeActor.class), nodeName);
+                });
+
         return actorSystem;
     }
 
@@ -80,5 +94,13 @@ public class NodeStarter {
         clusterDataHolder.setActorSystem(actorSystem);
 
         return actorSystem;
+    }
+
+    private String createNodeName(ClusterConfigHolder nodeConfig) {
+        Hostname hostname = nodeConfig.getCurrentNode().getHostname();
+        Port port = nodeConfig.getCurrentNode().getPort();
+
+        return "node_" + hostname.getHostname() + "_" + port.getPort()
+                ;
     }
 }

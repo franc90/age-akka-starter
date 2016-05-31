@@ -16,7 +16,9 @@ import org.age.akka.core.actors.messages.task.StateMsg;
 import org.age.akka.core.actors.messages.task.TaskStateMsg;
 import org.age.akka.core.actors.messages.topology.TopologyUpdatedMsg;
 import org.age.akka.core.actors.messages.topology.UpdateTopologyMsg;
+import org.age.akka.core.actors.messages.worker.ActorAddedMsg;
 import org.age.akka.core.actors.messages.worker.AddMemberMsg;
+import org.age.akka.core.actors.messages.worker.AddingActorFailedMsg;
 import org.age.akka.core.actors.messages.worker.MemberStateUpdateMsg;
 import org.age.akka.core.actors.messages.worker.RemoveMemberMsg;
 import org.age.akka.core.actors.messages.worker.UpdateWorkerTopologiesMsg;
@@ -43,10 +45,12 @@ MasterActor extends AbstractActor {
     private Queue<LifecycleMsg> lifecycleMessages = new ConcurrentLinkedQueue<>();
 
     public MasterActor() {
-        log.info("init master actor!! " + self().path());
+        log.info("init master actor!! {}", self().path());
 
         receive(ReceiveBuilder
                 .match(LifecycleMsg.class, this::processLifecycleMessage)
+                .match(ActorAddedMsg.class, this::processActorAddedMessage)
+                .match(AddingActorFailedMsg.class, this::processFailedAddingActorMessage)
                 .match(StateMsg.class, this::taskStateUpdated)
                 .match(TopologyUpdatedMsg.class, this::topologyUpdated)
                 .match(WorkersTopologiesUpdatedMsg.class, this::resumeTask)
@@ -67,7 +71,7 @@ MasterActor extends AbstractActor {
     }
 
     private void processLifecycleMessage(LifecycleMsg msg) throws Exception {
-        log.info("new lifecycle message: " + msg);
+        log.info("new lifecycle message: {}", msg);
 
         lifecycleMessages.add(msg);
         if (lifecycleMessages.size() > 1) {
@@ -79,10 +83,19 @@ MasterActor extends AbstractActor {
     }
 
     private void updateNodesMembership(LifecycleMsg msg) throws Exception {
-        log.info("update nodes membership based on " + msg);
-        taskService.tell(new TaskStateMsg(TaskStateMsg.Type.PAUSE), self());
+        log.info("update nodes membership based on {}", msg);
         MemberStateUpdateMsg workerMsg = prepareMessage(msg);
         workerService.tell(workerMsg, self());
+    }
+
+    private void processActorAddedMessage(ActorAddedMsg msg) {
+        log.info("Actor {} added", msg.getAddedActorId());
+        taskService.tell(new TaskStateMsg(TaskStateMsg.Type.PAUSE), self());
+    }
+
+    private void processFailedAddingActorMessage(AddingActorFailedMsg msg) throws Exception {
+        log.info("Adding {} failed", msg.getActorId());
+        resumeTask(null);
     }
 
     private MemberStateUpdateMsg prepareMessage(LifecycleMsg msg) {
@@ -118,9 +131,4 @@ MasterActor extends AbstractActor {
         LifecycleMsg lifecycleMsg = lifecycleMessages.peek();
         updateNodesMembership(lifecycleMsg);
     }
-
-    private void startTasks() {
-
-    }
-
 }

@@ -4,32 +4,36 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import org.age.akka.start.common.utils.SleepUtils;
 
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-
-public class SoutTaskActor extends TaskActor {
+public class SimpleLongRunningTaskActor extends TaskActor {
 
     private final LoggingAdapter log = Logging.getLogger(context().system(), this);
 
-    private final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
+    private boolean finished;
 
-    private int counter = 0;
+    private int counter;
 
-    public SoutTaskActor() {
+    public SimpleLongRunningTaskActor() {
         receive(getDefaultReceiveBuilder()
                 .build());
     }
 
+    @Override
     protected void doTask() throws Exception {
-        log.info("start doing task");
-        while (true) {
-            String time = timeFormatter.format(ZonedDateTime.now());
-            log.info("{}. attempt to log at {}. Because YOLO", ++counter, time);
+        if (finished) {
+            return;
+        }
+
+        log.info("This is the simplest possible example of a computation.");
+        for (; counter < 100; counter++) {
+            log.info("Iteration {}.", counter);
+
             SleepUtils.sleep(1000L);
             checkIfInterrupted();
             if (paused || cancelled) {
                 return;
             }
         }
+
+        finished = true;
     }
 }

@@ -30,7 +30,7 @@ public class TaskServiceActor extends AbstractActor {
     }
 
     private void updateTaskState(TaskStateMsg msg) {
-        log.info("update task state " + msg);
+        log.info("update task state {}", msg);
         switch (msg.getType()) {
             case START:
                 startWorkers();
@@ -65,7 +65,7 @@ public class TaskServiceActor extends AbstractActor {
             sendPauseWorkerMessages();
             state = StateMsg.PAUSED;
         } else {
-            log.info("task " + state + ". No pausing needed. Replying master with PAUSED");
+            log.info("task {}. No pausing needed. Replying master with PAUSED", state);
         }
         workersPaused(null);
     }
@@ -87,7 +87,7 @@ public class TaskServiceActor extends AbstractActor {
             sendResumeWorkerMessages();
             state = StateMsg.STARTED_OR_RESUMED;
         } else {
-            log.info("no resuming needed in " + state);
+            log.info("no resuming needed in {}", state);
         }
     }
 

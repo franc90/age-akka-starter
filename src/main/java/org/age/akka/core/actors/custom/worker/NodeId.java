@@ -28,6 +28,10 @@ public class NodeId implements Serializable, Comparable<NodeId> {
         return port;
     }
 
+    public String getName() {
+        return "node_" + hostname + "_" + port;
+    }
+
     public static NodeId fromAddress(Address address) {
         String host = address.host().getOrElse(func(() -> ""));
         int port = address.port().getOrElse(func(() -> 0));

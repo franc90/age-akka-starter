@@ -30,7 +30,7 @@ public abstract class AbstractTopologyProcessorActor extends AbstractActor {
         Set<NodeId> nodeIds = msg.getNodeIds();
 
         DirectedGraph<NodeId, DefaultEdge> topology = processTopology(nodeIds);
-        log.info("new Graph: " + topology);
+        log.info("new topology Graph: {}", topology);
         sender().tell(new NewTopologyMsg(topology), self());
     }
 

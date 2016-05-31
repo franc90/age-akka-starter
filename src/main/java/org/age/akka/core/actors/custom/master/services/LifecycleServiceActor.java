@@ -2,6 +2,7 @@ package org.age.akka.core.actors.custom.master.services;
 
 import akka.actor.AbstractActor;
 import akka.cluster.Cluster;
+import akka.cluster.ClusterEvent;
 import akka.cluster.Member;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
@@ -31,7 +32,7 @@ public class LifecycleServiceActor extends AbstractActor {
 
     @Override
     public void preStart() throws Exception {
-        cluster.subscribe(self(), initialStateAsEvents(), MemberEvent.class, ReachableMember.class,
+        cluster.subscribe(self(), initialStateAsEvents(), MemberUp.class, ReachableMember.class,
                 MemberExited.class, MemberRemoved.class, UnreachableMember.class);
     }
 
@@ -41,12 +42,12 @@ public class LifecycleServiceActor extends AbstractActor {
     }
 
     private void addMember(Member member) {
-        log.info("inform parent that node should be added " + member);
+        log.info("inform parent that node should be added {}", member);
         context().parent().tell(new LifecycleMsg(ADD, member.address()), self());
     }
 
     private void removeMember(Member member) {
-        log.info("inform parent that node should be removed " + member);
+        log.info("inform parent that node should be removed {}", member);
         context().parent().tell(new LifecycleMsg(REMOVE, member.address()), self());
     }
 
