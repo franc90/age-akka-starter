@@ -21,7 +21,7 @@ public class FullyConnectedTopologyProcessorActor extends AbstractTopologyProces
     }
 
     @Override
-    protected DirectedGraph<NodeId, DefaultEdge> processTopology(Set<NodeId> nodeIds) {
+    protected DirectedGraph<NodeId, DefaultEdge> createNewTopologyWithNodes(Set<NodeId> nodeIds) {
         final DefaultDirectedGraph<NodeId, DefaultEdge> graph = new DefaultDirectedGraph<>(DefaultEdge.class);
         nodeIds.forEach(graph::addVertex);
 

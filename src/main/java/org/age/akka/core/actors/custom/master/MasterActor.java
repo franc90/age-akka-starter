@@ -3,7 +3,6 @@ package org.age.akka.core.actors.custom.master;
 import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
 import akka.actor.Props;
-import akka.cluster.Cluster;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import akka.japi.pf.ReceiveBuilder;
@@ -11,18 +10,18 @@ import org.age.akka.core.actors.custom.master.services.LifecycleServiceActor;
 import org.age.akka.core.actors.custom.master.services.TaskServiceActor;
 import org.age.akka.core.actors.custom.master.services.TopologyServiceActor;
 import org.age.akka.core.actors.custom.master.services.WorkerServiceActor;
-import org.age.akka.core.actors.messages.lifecycle.LifecycleMsg;
-import org.age.akka.core.actors.messages.task.StateMsg;
-import org.age.akka.core.actors.messages.task.TaskStateMsg;
-import org.age.akka.core.actors.messages.topology.TopologyUpdatedMsg;
-import org.age.akka.core.actors.messages.topology.UpdateTopologyMsg;
-import org.age.akka.core.actors.messages.worker.ActorAddedMsg;
-import org.age.akka.core.actors.messages.worker.AddMemberMsg;
-import org.age.akka.core.actors.messages.worker.AddingActorFailedMsg;
-import org.age.akka.core.actors.messages.worker.MemberStateUpdateMsg;
-import org.age.akka.core.actors.messages.worker.RemoveMemberMsg;
-import org.age.akka.core.actors.messages.worker.UpdateWorkerTopologiesMsg;
-import org.age.akka.core.actors.messages.worker.WorkersTopologiesUpdatedMsg;
+import org.age.akka.core.actors.messages.lifecycle.LifecycleUpdatedRequest;
+import org.age.akka.core.actors.messages.task.UpdateTaskStateRequest;
+import org.age.akka.core.actors.messages.task.UpdateTaskStateResponse;
+import org.age.akka.core.actors.messages.topology.TopologyUpdateRequest;
+import org.age.akka.core.actors.messages.topology.TopologyUpdateResponse;
+import org.age.akka.core.actors.messages.worker.lifecycle.AddWorkerFailedResponse;
+import org.age.akka.core.actors.messages.worker.lifecycle.AddWorkerRequest;
+import org.age.akka.core.actors.messages.worker.lifecycle.AddWorkerSucceededResponse;
+import org.age.akka.core.actors.messages.worker.lifecycle.RemoveWorkerRequest;
+import org.age.akka.core.actors.messages.worker.lifecycle.UpdateWorkersRequest;
+import org.age.akka.core.actors.messages.worker.topology.UpdateWorkerTopologiesRequest;
+import org.age.akka.core.actors.messages.worker.topology.UpdateWorkerTopologiesResponse;
 
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -32,8 +31,6 @@ MasterActor extends AbstractActor {
 
     private final LoggingAdapter log = Logging.getLogger(context().system(), this);
 
-    private final Cluster cluster = Cluster.get(getContext().system());
-
     private ActorRef lifecycleService;
 
     private ActorRef topologyService;
@@ -42,18 +39,16 @@ MasterActor extends AbstractActor {
 
     private ActorRef taskService;
 
-    private Queue<LifecycleMsg> lifecycleMessages = new ConcurrentLinkedQueue<>();
+    private Queue<LifecycleUpdatedRequest> lifecycleUpdateRequests = new ConcurrentLinkedQueue<>();
 
     public MasterActor() {
-        log.info("init master actor!! {}", self().path());
-
         receive(ReceiveBuilder
-                .match(LifecycleMsg.class, this::processLifecycleMessage)
-                .match(ActorAddedMsg.class, this::processActorAddedMessage)
-                .match(AddingActorFailedMsg.class, this::processFailedAddingActorMessage)
-                .match(StateMsg.class, this::taskStateUpdated)
-                .match(TopologyUpdatedMsg.class, this::topologyUpdated)
-                .match(WorkersTopologiesUpdatedMsg.class, this::resumeTask)
+                .match(LifecycleUpdatedRequest.class, this::processLifecycleUpdatedRequest)
+                .match(AddWorkerSucceededResponse.class, this::processAddWorkerSucceededResponse)
+                .match(AddWorkerFailedResponse.class, this::processAddWorkerFailedResponse)
+                .match(UpdateTaskStateResponse.class, this::processTaskState)
+                .match(TopologyUpdateResponse.class, this::processTopologyUpdateResponse)
+                .match(UpdateWorkerTopologiesResponse.class, this::processUpdateWorkerTopologiesResponse)
                 .matchAny(msg -> log.info("Received not supported message {}", msg))
                 .build());
     }
@@ -70,65 +65,65 @@ MasterActor extends AbstractActor {
         context().watch(lifecycleService);
     }
 
-    private void processLifecycleMessage(LifecycleMsg msg) throws Exception {
-        log.info("new lifecycle message: {}", msg);
+    private void processLifecycleUpdatedRequest(LifecycleUpdatedRequest request) throws Exception {
+        log.debug("lifecycle updated: {}", request);
 
-        lifecycleMessages.add(msg);
-        if (lifecycleMessages.size() > 1) {
-            log.info("already processing lifecycle message. Adding this one to queue");
+        lifecycleUpdateRequests.add(request);
+        if (lifecycleUpdateRequests.size() > 1) {
+            log.info("already processing lifecycle update. Adding {} to queue", request);
             return;
         }
 
-        updateNodesMembership(msg);
+        updateWorkerState(request);
     }
 
-    private void updateNodesMembership(LifecycleMsg msg) throws Exception {
-        log.info("update nodes membership based on {}", msg);
-        MemberStateUpdateMsg workerMsg = prepareMessage(msg);
-        workerService.tell(workerMsg, self());
+    private void updateWorkerState(LifecycleUpdatedRequest request) throws Exception {
+        log.debug("update update worker based on {}", request);
+        UpdateWorkersRequest updateWorker = prepareUpdateWorkerRequest(request);
+        workerService.tell(updateWorker, self());
     }
 
-    private void processActorAddedMessage(ActorAddedMsg msg) {
-        log.info("Actor {} added", msg.getAddedActorId());
-        taskService.tell(new TaskStateMsg(TaskStateMsg.Type.PAUSE), self());
-    }
-
-    private void processFailedAddingActorMessage(AddingActorFailedMsg msg) throws Exception {
-        log.info("Adding {} failed", msg.getActorId());
-        resumeTask(null);
-    }
-
-    private MemberStateUpdateMsg prepareMessage(LifecycleMsg msg) {
-        if (msg.getType() == LifecycleMsg.Type.REMOVE) {
-            return new RemoveMemberMsg(msg.getAddress());
+    private UpdateWorkersRequest prepareUpdateWorkerRequest(LifecycleUpdatedRequest request) {
+        if (request.getType() == LifecycleUpdatedRequest.Type.REMOVE) {
+            return new RemoveWorkerRequest(request.getAddress());
         }
-        return new AddMemberMsg(msg.getAddress());
+        return new AddWorkerRequest(request.getAddress());
     }
 
-    private void taskStateUpdated(StateMsg taskStateMsg) {
-        log.info("task state updated");
-        if (taskStateMsg == StateMsg.PAUSED) {
-            topologyService.tell(new UpdateTopologyMsg(), self());
+    private void processAddWorkerSucceededResponse(AddWorkerSucceededResponse response) {
+        log.debug("worker {} added", response.getAddedActorId());
+        taskService.tell(new UpdateTaskStateRequest(UpdateTaskStateRequest.Type.PAUSE), self());
+    }
+
+    private void processAddWorkerFailedResponse(AddWorkerFailedResponse response) throws Exception {
+        log.debug("adding {} failed", response.getActorId());
+        processUpdateWorkerTopologiesResponse(null);
+    }
+
+    private void processTaskState(UpdateTaskStateResponse taskTaskState) {
+        log.debug("task state updated");
+        if (taskTaskState.getState() == UpdateTaskStateResponse.State.PAUSED) {
+            topologyService.tell(new TopologyUpdateRequest(), self());
             return;
         }
-        log.error("Task not paused");
+        log.error("task not paused");
     }
 
-    private void topologyUpdated(TopologyUpdatedMsg msg) {
-        log.info("topology updated");
-        workerService.tell(new UpdateWorkerTopologiesMsg(msg.getTopology()), self());
+    private void processTopologyUpdateResponse(TopologyUpdateResponse response) {
+        log.debug("received updated topology {}", response.getTopology());
+        workerService.tell(new UpdateWorkerTopologiesRequest(response.getTopology()), self());
     }
 
-    private void resumeTask(WorkersTopologiesUpdatedMsg msg) throws Exception {
-        lifecycleMessages.poll();
-        if (lifecycleMessages.isEmpty()) {
-            log.info("no more lifecycle messages - resume task if paused");
-            taskService.tell(new TaskStateMsg(TaskStateMsg.Type.RESUME), self());
+    private void processUpdateWorkerTopologiesResponse(UpdateWorkerTopologiesResponse response) throws Exception {
+        lifecycleUpdateRequests.poll();
+        if (lifecycleUpdateRequests.isEmpty()) {
+            log.debug("no more lifecycle update request - resume tasks if paused");
+            taskService.tell(new UpdateTaskStateRequest(UpdateTaskStateRequest.Type.RESUME), self());
             return;
         }
 
-        log.info("more tasks queued, update nodes membership");
-        LifecycleMsg lifecycleMsg = lifecycleMessages.peek();
-        updateNodesMembership(lifecycleMsg);
+        log.debug("more lifecycle update requests queued, update nodes membership");
+        LifecycleUpdatedRequest lifecycleUpdatedRequest = lifecycleUpdateRequests.peek();
+        updateWorkerState(lifecycleUpdatedRequest);
     }
 }

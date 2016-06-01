@@ -1,20 +1,23 @@
-package org.age.akka.core.actors.messages;
+package org.age.akka.core.actors.messages.topology;
 
 import com.google.common.base.MoreObjects;
+import org.age.akka.core.actors.custom.worker.NodeId;
+import org.age.akka.core.actors.messages.Message;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-public class HelloMessage implements Message<String> {
+import java.util.Set;
 
-    private final String text;
+public class NewTopologyRequest implements Message {
 
-    public HelloMessage(String text) {
-        this.text = text;
+    private final Set<NodeId> nodeIds;
+
+    public NewTopologyRequest(Set<NodeId> nodeIds) {
+        this.nodeIds = nodeIds;
     }
 
-    @Override
-    public String getContent() {
-        return text;
+    public Set<NodeId> getNodeIds() {
+        return nodeIds;
     }
 
     @Override
@@ -23,24 +26,24 @@ public class HelloMessage implements Message<String> {
 
         if (o == null || getClass() != o.getClass()) return false;
 
-        HelloMessage that = (HelloMessage) o;
+        NewTopologyRequest that = (NewTopologyRequest) o;
 
         return new EqualsBuilder()
-                .append(text, that.text)
+                .append(nodeIds, that.nodeIds)
                 .isEquals();
     }
 
     @Override
     public int hashCode() {
         return new HashCodeBuilder(17, 37)
-                .append(text)
+                .append(nodeIds)
                 .toHashCode();
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
-                .add("text", text)
+                .add("nodeIds", nodeIds)
                 .toString();
     }
 }

@@ -1,18 +1,17 @@
-package org.age.akka.core.actors.messages.node;
+package org.age.akka.core.actors.messages.worker.nodes;
 
 import com.google.common.base.MoreObjects;
+import org.age.akka.core.actors.messages.Message;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-import java.io.Serializable;
-
-public class InterruptTaskMsg implements Serializable {
+public class InterruptWorkerRequest implements Message {
 
     private final boolean pause;
 
     private final boolean cancel;
 
-    public InterruptTaskMsg(boolean pause, boolean cancel) {
+    public InterruptWorkerRequest(boolean pause, boolean cancel) {
         this.pause = pause;
         this.cancel = cancel;
     }
@@ -31,7 +30,7 @@ public class InterruptTaskMsg implements Serializable {
 
         if (o == null || getClass() != o.getClass()) return false;
 
-        InterruptTaskMsg that = (InterruptTaskMsg) o;
+        InterruptWorkerRequest that = (InterruptWorkerRequest) o;
 
         return new EqualsBuilder()
                 .append(pause, that.pause)

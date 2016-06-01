@@ -14,6 +14,7 @@ public class SimpleLongRunningTaskActor extends TaskActor {
 
     public SimpleLongRunningTaskActor() {
         receive(getDefaultReceiveBuilder()
+                .matchAny(msg -> log.info("Received not supported message {}", msg))
                 .build());
     }
 

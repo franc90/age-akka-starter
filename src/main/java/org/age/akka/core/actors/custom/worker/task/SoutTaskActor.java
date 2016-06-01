@@ -17,6 +17,7 @@ public class SoutTaskActor extends TaskActor {
 
     public SoutTaskActor() {
         receive(getDefaultReceiveBuilder()
+                .matchAny(msg -> log.info("Received not supported message {}", msg))
                 .build());
     }
 

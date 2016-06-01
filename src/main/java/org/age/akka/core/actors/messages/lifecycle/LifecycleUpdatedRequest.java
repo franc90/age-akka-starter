@@ -2,18 +2,17 @@ package org.age.akka.core.actors.messages.lifecycle;
 
 import akka.actor.Address;
 import com.google.common.base.MoreObjects;
+import org.age.akka.core.actors.messages.Message;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-import java.io.Serializable;
-
-public class LifecycleMsg implements Serializable {
+public class LifecycleUpdatedRequest implements Message {
 
     private final Type type;
 
     private final Address address;
 
-    public LifecycleMsg(Type type, Address address) {
+    public LifecycleUpdatedRequest(Type type, Address address) {
         this.type = type;
         this.address = address;
     }
@@ -32,7 +31,7 @@ public class LifecycleMsg implements Serializable {
 
         if (o == null || getClass() != o.getClass()) return false;
 
-        LifecycleMsg that = (LifecycleMsg) o;
+        LifecycleUpdatedRequest that = (LifecycleUpdatedRequest) o;
 
         return new EqualsBuilder()
                 .append(type, that.type)

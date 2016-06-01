@@ -11,6 +11,7 @@ public class SimpleTaskActor extends TaskActor {
 
     public SimpleTaskActor() {
         receive(getDefaultReceiveBuilder()
+                .matchAny(msg -> log.info("Received not supported message {}", msg))
                 .build());
     }
 

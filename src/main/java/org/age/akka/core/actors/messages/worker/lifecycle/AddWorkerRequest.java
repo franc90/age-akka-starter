@@ -1,20 +1,20 @@
-package org.age.akka.core.actors.messages.worker;
+package org.age.akka.core.actors.messages.worker.lifecycle;
 
+import akka.actor.Address;
 import com.google.common.base.MoreObjects;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-public class NodeBroadcastMessage implements BroadcastMsg<String> {
+public class AddWorkerRequest implements UpdateWorkersRequest {
 
-    private final String content;
+    private final Address workerAddress;
 
-    public NodeBroadcastMessage(String content) {
-        this.content = content;
+    public AddWorkerRequest(Address workerAddress) {
+        this.workerAddress = workerAddress;
     }
 
-    @Override
-    public String getContent() {
-        return content;
+    public Address getWorkerAddress() {
+        return workerAddress;
     }
 
     @Override
@@ -23,26 +23,24 @@ public class NodeBroadcastMessage implements BroadcastMsg<String> {
 
         if (o == null || getClass() != o.getClass()) return false;
 
-        NodeBroadcastMessage that = (NodeBroadcastMessage) o;
+        AddWorkerRequest that = (AddWorkerRequest) o;
 
         return new EqualsBuilder()
-                .append(content, that.content)
+                .append(workerAddress, that.workerAddress)
                 .isEquals();
     }
 
     @Override
     public int hashCode() {
         return new HashCodeBuilder(17, 37)
-                .append(content)
+                .append(workerAddress)
                 .toHashCode();
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
-                .add("content", content)
+                .add("workerAddress", workerAddress)
                 .toString();
     }
-
-
 }

@@ -2,36 +2,33 @@ package org.age.akka.core.actors.custom.master.services;
 
 import akka.actor.AbstractActor;
 import akka.actor.ActorSelection;
-import akka.cluster.Cluster;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import akka.japi.pf.ReceiveBuilder;
-import org.age.akka.core.actors.messages.task.StateMsg;
-import org.age.akka.core.actors.messages.task.TaskStateMsg;
-import org.age.akka.core.actors.messages.worker.WorkersPausedMsg;
+import org.age.akka.core.actors.messages.task.UpdateTaskStateRequest;
+import org.age.akka.core.actors.messages.task.UpdateTaskStateResponse;
 
 import java.util.Optional;
+
+import static org.age.akka.core.actors.messages.task.UpdateTaskStateResponse.State.*;
 
 public class TaskServiceActor extends AbstractActor {
 
     private final LoggingAdapter log = Logging.getLogger(context().system(), this);
 
-    private final Cluster cluster = Cluster.get(getContext().system());
-
-    private StateMsg state = StateMsg.INIT;
+    private UpdateTaskStateResponse.State state = INIT;
 
     public TaskServiceActor() {
         receive(ReceiveBuilder
-                .match(TaskStateMsg.class, this::updateTaskState)
-                .match(WorkersPausedMsg.class, this::workersPaused)
-                .matchAny(msg -> log.info("Received not supported message {}", msg))
+                .match(UpdateTaskStateRequest.class, this::processUpdateTaskStateRequest)
+                .matchAny(msg -> log.warning("Received not supported message {}", msg))
                 .build());
 
     }
 
-    private void updateTaskState(TaskStateMsg msg) {
-        log.info("update task state {}", msg);
-        switch (msg.getType()) {
+    private void processUpdateTaskStateRequest(UpdateTaskStateRequest request) {
+        log.debug("update task state {}", request);
+        switch (request.getType()) {
             case START:
                 startWorkers();
                 break;
@@ -45,55 +42,63 @@ public class TaskServiceActor extends AbstractActor {
     }
 
     private void startWorkers() {
-        if (state == StateMsg.INIT || state == StateMsg.CANCELLED) {
-            log.info("starting workers");
+        if (state == INIT || state == CANCELLED) {
+            log.debug("starting workers");
             sendStartWorkerMessages();
-            state = StateMsg.STARTED_OR_RESUMED;
+            state = STARTED_OR_RESUMED;
         } else {
-            log.info("tasks do not need starting");
+            log.debug("tasks do not need starting");
         }
     }
 
     private void sendStartWorkerMessages() {
-        log.info("send start all workers message");
-        findWorkerService().ifPresent(workerService -> workerService.tell(new TaskStateMsg(TaskStateMsg.Type.START), self()));
+        log.debug("send start task for all workers request to worker service");
+        findWorkerService().ifPresent(workerService -> {
+            UpdateTaskStateRequest request = new UpdateTaskStateRequest(UpdateTaskStateRequest.Type.START);
+            workerService.tell(request, self());
+        });
     }
 
     private void pauseWorkers() {
-        if (state == StateMsg.STARTED_OR_RESUMED) {
-            log.info("task needs pausing");
+        if (state == STARTED_OR_RESUMED) {
+            log.debug("tasks need pausing");
             sendPauseWorkerMessages();
-            state = StateMsg.PAUSED;
+            state = PAUSED;
         } else {
-            log.info("task {}. No pausing needed. Replying master with PAUSED", state);
+            log.debug("current tasks' state is {}. No pausing needed. Replying master with PAUSED", state);
         }
-        workersPaused(null);
+        workersPaused();
     }
 
     private void sendPauseWorkerMessages() {
-        log.info("send pause all workers message");
-        findWorkerService().ifPresent(workerService -> workerService.tell(new TaskStateMsg(TaskStateMsg.Type.PAUSE), self()));
+        log.debug("send request to pause all workers");
+        findWorkerService().ifPresent(workerService -> {
+            UpdateTaskStateRequest request = new UpdateTaskStateRequest(UpdateTaskStateRequest.Type.PAUSE);
+            workerService.tell(request, self());
+        });
     }
 
-    private void workersPaused(WorkersPausedMsg msg) {
-        log.info("all workers paused - inform master");
-        context().parent().tell(StateMsg.PAUSED, self());
-
+    private void workersPaused() {
+        log.debug("inform parent that all workers have been stopped");
+        context().parent().tell(new UpdateTaskStateResponse(PAUSED), self());
     }
 
     private void resumeWorkers() {
-        if (state == StateMsg.PAUSED || state == StateMsg.INIT || state == StateMsg.CANCELLED) {
-            log.info("workers paused. Resume working");
+        if (state == PAUSED || state == INIT || state == CANCELLED) {
+            log.debug("tasks not running, send request to start them");
             sendResumeWorkerMessages();
-            state = StateMsg.STARTED_OR_RESUMED;
+            state = STARTED_OR_RESUMED;
         } else {
-            log.info("no resuming needed in {}", state);
+            log.debug("no resuming needed in {} state", state);
         }
     }
 
     private void sendResumeWorkerMessages() {
-        log.info("send resume workers message");
-        findWorkerService().ifPresent(workerService -> workerService.tell(new TaskStateMsg(TaskStateMsg.Type.RESUME), self()));
+        log.debug("send resume workers message");
+        findWorkerService().ifPresent(workerService -> {
+            UpdateTaskStateRequest request = new UpdateTaskStateRequest(UpdateTaskStateRequest.Type.RESUME);
+            workerService.tell(request, self());
+        });
     }
 
     private Optional<ActorSelection> findWorkerService() {

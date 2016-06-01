@@ -1,20 +1,27 @@
-package org.age.akka.core.actors.messages.worker;
+package org.age.akka.core.actors.messages.task;
 
 import com.google.common.base.MoreObjects;
+import org.age.akka.core.actors.messages.Message;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-public class TaskBroadcastInMsg implements BroadcastMsg<String> {
+public class UpdateTaskStateResponse implements Message {
 
-    private final String content;
-
-    public TaskBroadcastInMsg(String content) {
-        this.content = content;
+    public enum State {
+        INIT,
+        STARTED_OR_RESUMED,
+        PAUSED,
+        CANCELLED
     }
 
-    @Override
-    public String getContent() {
-        return content;
+    private final State state;
+
+    public UpdateTaskStateResponse(State state) {
+        this.state = state;
+    }
+
+    public State getState() {
+        return state;
     }
 
     @Override
@@ -23,24 +30,25 @@ public class TaskBroadcastInMsg implements BroadcastMsg<String> {
 
         if (o == null || getClass() != o.getClass()) return false;
 
-        TaskBroadcastInMsg that = (TaskBroadcastInMsg) o;
+        UpdateTaskStateResponse that = (UpdateTaskStateResponse) o;
 
         return new EqualsBuilder()
-                .append(content, that.content)
+                .append(state, that.state)
                 .isEquals();
     }
 
     @Override
     public int hashCode() {
         return new HashCodeBuilder(17, 37)
-                .append(content)
+                .append(state)
                 .toHashCode();
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
-                .add("content", content)
+                .add("state", state)
                 .toString();
     }
+
 }

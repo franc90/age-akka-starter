@@ -1,17 +1,16 @@
-package org.age.akka.core.actors.messages.worker;
+package org.age.akka.core.actors.messages.worker.lifecycle;
 
 import com.google.common.base.MoreObjects;
 import org.age.akka.core.actors.custom.worker.NodeId;
+import org.age.akka.core.actors.messages.Message;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-import java.io.Serializable;
-
-public class AddingActorFailedMsg implements Serializable {
+public class AddWorkerFailedResponse implements Message {
 
     private final NodeId actorId;
 
-    public AddingActorFailedMsg(NodeId nodeId) {
+    public AddWorkerFailedResponse(NodeId nodeId) {
         this.actorId = nodeId;
     }
 
@@ -25,7 +24,7 @@ public class AddingActorFailedMsg implements Serializable {
 
         if (o == null || getClass() != o.getClass()) return false;
 
-        AddingActorFailedMsg that = (AddingActorFailedMsg) o;
+        AddWorkerFailedResponse that = (AddWorkerFailedResponse) o;
 
         return new EqualsBuilder()
                 .append(actorId, that.actorId)

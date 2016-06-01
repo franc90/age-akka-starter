@@ -6,8 +6,8 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import akka.japi.pf.ReceiveBuilder;
 import org.age.akka.core.actors.custom.worker.NodeId;
-import org.age.akka.core.actors.messages.topology.NewTopologyMsg;
-import org.age.akka.core.actors.messages.topology.ProcessNewTopologyMsg;
+import org.age.akka.core.actors.messages.topology.NewTopologyResponse;
+import org.age.akka.core.actors.messages.topology.NewTopologyRequest;
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
 
@@ -21,19 +21,19 @@ public abstract class AbstractTopologyProcessorActor extends AbstractActor {
 
     public AbstractTopologyProcessorActor() {
         receive(ReceiveBuilder
-                .match(ProcessNewTopologyMsg.class, this::processTopology)
+                .match(NewTopologyRequest.class, this::processNewTopologyRequest)
                 .matchAny(msg -> log.info("Received not supported message {}", msg))
                 .build());
     }
 
-    private void processTopology(ProcessNewTopologyMsg msg) {
-        Set<NodeId> nodeIds = msg.getNodeIds();
+    private void processNewTopologyRequest(NewTopologyRequest request) {
+        Set<NodeId> nodeIds = request.getNodeIds();
 
-        DirectedGraph<NodeId, DefaultEdge> topology = processTopology(nodeIds);
+        DirectedGraph<NodeId, DefaultEdge> topology = createNewTopologyWithNodes(nodeIds);
         log.info("new topology Graph: {}", topology);
-        sender().tell(new NewTopologyMsg(topology), self());
+        sender().tell(new NewTopologyResponse(topology), self());
     }
 
-    protected abstract DirectedGraph<NodeId, DefaultEdge> processTopology(Set<NodeId> nodeIds);
+    protected abstract DirectedGraph<NodeId, DefaultEdge> createNewTopologyWithNodes(Set<NodeId> nodeIds);
 
 }

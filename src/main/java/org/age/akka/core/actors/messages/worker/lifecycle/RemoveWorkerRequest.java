@@ -1,22 +1,20 @@
-package org.age.akka.core.actors.messages.worker;
+package org.age.akka.core.actors.messages.worker.lifecycle;
 
+import akka.actor.Address;
 import com.google.common.base.MoreObjects;
-import org.age.akka.core.actors.custom.worker.NodeId;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-import java.io.Serializable;
+public class RemoveWorkerRequest implements UpdateWorkersRequest {
 
-public class ActorAddedMsg implements Serializable {
+    private final Address workerAddress;
 
-    private final NodeId addedActorId;
-
-    public ActorAddedMsg(NodeId id) {
-        this.addedActorId = id;
+    public RemoveWorkerRequest(Address workerAddress) {
+        this.workerAddress = workerAddress;
     }
 
-    public NodeId getAddedActorId() {
-        return addedActorId;
+    public Address getWorkerAddress() {
+        return workerAddress;
     }
 
     @Override
@@ -25,24 +23,24 @@ public class ActorAddedMsg implements Serializable {
 
         if (o == null || getClass() != o.getClass()) return false;
 
-        ActorAddedMsg that = (ActorAddedMsg) o;
+        RemoveWorkerRequest that = (RemoveWorkerRequest) o;
 
         return new EqualsBuilder()
-                .append(addedActorId, that.addedActorId)
+                .append(workerAddress, that.workerAddress)
                 .isEquals();
     }
 
     @Override
     public int hashCode() {
         return new HashCodeBuilder(17, 37)
-                .append(addedActorId)
+                .append(workerAddress)
                 .toHashCode();
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
-                .add("addedActorId", addedActorId)
+                .add("workerAddress", workerAddress)
                 .toString();
     }
 }

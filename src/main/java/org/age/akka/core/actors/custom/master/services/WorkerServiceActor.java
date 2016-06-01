@@ -12,18 +12,19 @@ import akka.japi.pf.ReceiveBuilder;
 import javaslang.Tuple;
 import javaslang.Tuple2;
 import org.age.akka.core.actors.custom.worker.NodeId;
-import org.age.akka.core.actors.messages.node.InterruptTaskMsg;
-import org.age.akka.core.actors.messages.node.StartTaskMsg;
-import org.age.akka.core.actors.messages.node.UpdateNodeTopologyMsg;
-import org.age.akka.core.actors.messages.task.TaskStateMsg;
-import org.age.akka.core.actors.messages.worker.ActorAddedMsg;
-import org.age.akka.core.actors.messages.worker.AddMemberMsg;
-import org.age.akka.core.actors.messages.worker.AddingActorFailedMsg;
-import org.age.akka.core.actors.messages.worker.GetNodesMsg;
-import org.age.akka.core.actors.messages.worker.NodesMsg;
-import org.age.akka.core.actors.messages.worker.RemoveMemberMsg;
-import org.age.akka.core.actors.messages.worker.UpdateWorkerTopologiesMsg;
-import org.age.akka.core.actors.messages.worker.WorkersTopologiesUpdatedMsg;
+import org.age.akka.core.actors.messages.Message;
+import org.age.akka.core.actors.messages.task.UpdateTaskStateRequest;
+import org.age.akka.core.actors.messages.worker.lifecycle.AddWorkerFailedResponse;
+import org.age.akka.core.actors.messages.worker.lifecycle.AddWorkerRequest;
+import org.age.akka.core.actors.messages.worker.lifecycle.AddWorkerSucceededResponse;
+import org.age.akka.core.actors.messages.worker.lifecycle.RemoveWorkerRequest;
+import org.age.akka.core.actors.messages.worker.nodes.CurrentWorkerNodesResponse;
+import org.age.akka.core.actors.messages.worker.nodes.GetCurrentWorkerNodesRequest;
+import org.age.akka.core.actors.messages.worker.nodes.InterruptWorkerRequest;
+import org.age.akka.core.actors.messages.worker.nodes.StartWorkerTaskRequest;
+import org.age.akka.core.actors.messages.worker.topology.UpdateWorkerTopologiesRequest;
+import org.age.akka.core.actors.messages.worker.topology.UpdateWorkerTopologiesResponse;
+import org.age.akka.core.actors.messages.worker.topology.UpdateWorkerTopologyRequest;
 import org.age.akka.start.common.utils.SleepUtils;
 
 import java.util.HashMap;
@@ -37,95 +38,106 @@ public class WorkerServiceActor extends AbstractActor {
 
     private static final int MAX_CONNECTION_ATTEMPTS = 20;
 
-    private final Map<NodeId, ActorRef> memberNodes = new HashMap<>();
+    private final Map<NodeId, ActorRef> workerNodes = new HashMap<>();
 
-    private final Map<String, Tuple2<Integer, NodeId>> actorConnectionCount = new HashMap<>();
+    private final Map<String, Tuple2<Integer, NodeId>> workerConnectionAttempts = new HashMap<>();
 
     public WorkerServiceActor() {
         receive(ReceiveBuilder
-                .match(AddMemberMsg.class, this::addMember)
-                .match(ActorIdentity.class, this::actorIdentity)
-                .match(RemoveMemberMsg.class, this::removeMember)
-                .match(TaskStateMsg.class, this::changeTaskState)
-                .match(GetNodesMsg.class, this::getNodes)
-                .match(UpdateWorkerTopologiesMsg.class, this::updateTopologies)
+                .match(AddWorkerRequest.class, this::processAddWorkerRequest)
+                .match(ActorIdentity.class, this::processWorkerIdentityResponse)
+                .match(RemoveWorkerRequest.class, this::processRemoveWorkerRequest)
+                .match(UpdateTaskStateRequest.class, this::processUpdateTaskStateRequest)
+                .match(GetCurrentWorkerNodesRequest.class, this::processGetCurrentNodesRequest)
+                .match(UpdateWorkerTopologiesRequest.class, this::processUpdateWorkerTopologiesRequest)
                 .matchAny(msg -> log.info("Received not supported message {}", msg))
                 .build());
     }
 
-    private void addMember(AddMemberMsg msg) throws Exception {
-        log.info("add Member");
-        Address address = msg.getActorAddress();
-        NodeId id = NodeId.fromAddress(address);
-        log.info("Look for member node at {}", id);
+    private void processAddWorkerRequest(AddWorkerRequest request) throws Exception {
+        log.debug("add worker");
+        Address workerAddress = request.getWorkerAddress();
+        NodeId id = NodeId.fromAddress(workerAddress);
+        log.debug("Look for worker node at {}", id);
 
         String path = "akka.tcp://age3@" + id.getHostname() + ":" + id.getPort() + "/user/" + id.getName();
-        actorConnectionCount.putIfAbsent(path, Tuple.of(0, id));
+        workerConnectionAttempts.putIfAbsent(path, Tuple.of(0, id));
 
+        askWorkerForIdentity(path);
+    }
+
+    private void processWorkerIdentityResponse(ActorIdentity workerIdentity) {
+        ActorRef workerRef = workerIdentity.getRef();
+        String workerPath = (String) workerIdentity.correlationId();
+
+        Tuple2<Integer, NodeId> workerConnectionAttemptData = workerConnectionAttempts.get(workerPath);
+        Integer connectionCount = workerConnectionAttemptData._1;
+        if (workerRef == null) {
+            if (connectionCount < MAX_CONNECTION_ATTEMPTS) {
+                log.debug("Unsuccessful connection try #{} to worker {}", connectionCount, workerPath);
+                workerConnectionAttempts.put(workerPath, Tuple.of(connectionCount + 1, workerConnectionAttemptData._2));
+
+                //todo replace with scheduler
+                SleepUtils.sleep(200L);
+
+                askWorkerForIdentity(workerPath);
+            } else {
+                log.warning("Cannot find actor at path {}.", workerPath);
+                workerConnectionAttempts.remove(workerPath);
+                sendToParent(new AddWorkerFailedResponse(workerConnectionAttemptData._2));
+            }
+        } else {
+            workerConnectionAttempts.remove(workerPath);
+            NodeId workerNodeId = workerConnectionAttemptData._2;
+            workerNodes.put(workerNodeId, workerRef);
+            sendToParent(new AddWorkerSucceededResponse(workerNodeId));
+        }
+    }
+
+    private void askWorkerForIdentity(String path) {
         ActorSelection actorSelection = getContext().actorSelection(path);
         actorSelection.tell(new Identify(path), self());
     }
 
-    private void actorIdentity(ActorIdentity identity) {
-        ActorRef ref = identity.getRef();
-        String path = (String) identity.correlationId();
+    private void processRemoveWorkerRequest(RemoveWorkerRequest request) {
+        log.debug("remove worker node");
+        NodeId id = NodeId.fromAddress(request.getWorkerAddress());
 
-        Tuple2<Integer, NodeId> tuple = actorConnectionCount.get(path);
-        Integer count = tuple._1;
-        if (ref == null) {
-            if (count < MAX_CONNECTION_ATTEMPTS) {
-                log.info("Connection try #{} to {} unsuccessful.", count, path);
-                actorConnectionCount.put(path, Tuple.of(count + 1, tuple._2));
-                SleepUtils.sleep(200L);
-                ActorSelection actorSelection = getContext().actorSelection(path);
-                actorSelection.tell(new Identify(path), self());
-            } else {
-                actorConnectionCount.remove(path);
-                log.warning("Cannot find actor at path {}.", path);
-                context().parent().tell(new AddingActorFailedMsg(tuple._2), self());
-            }
-        } else {
-            actorConnectionCount.remove(path);
-            NodeId id = tuple._2;
-            memberNodes.put(id, ref);
-            context().parent().tell(new ActorAddedMsg(id), self());
-        }
+        log.debug("Stop and remove worker node {}", id);
+        ActorRef workerRef = workerNodes.remove(id);
+        context().stop(workerRef);
     }
 
-    private void removeMember(RemoveMemberMsg msg) {
-        log.info("remove Member");
-        NodeId id = NodeId.fromAddress(msg.getAddress());
-
-        log.info("Remove member node from {}", id);
-        memberNodes.remove(id);
-    }
-
-    private void getNodes(GetNodesMsg msg) {
-        log.info("get current cluster nodes");
-        Set<NodeId> nodeIds = new HashSet<>(memberNodes.keySet());
-        sender().tell(new NodesMsg(nodeIds), self());
-    }
-
-    private void changeTaskState(TaskStateMsg msg) {
-        log.info("sending {} to {} member nodes", msg.getType(), memberNodes.size());
-        switch (msg.getType()) {
+    private void processUpdateTaskStateRequest(UpdateTaskStateRequest request) {
+        log.debug("sending {} to {} member nodes", request.getType(), workerNodes.size());
+        switch (request.getType()) {
             case START:
             case RESUME:
-                memberNodes.values().forEach(node -> node.tell(new StartTaskMsg(), self()));
+                workerNodes.values().forEach(node -> node.tell(new StartWorkerTaskRequest(), self()));
                 break;
             case PAUSE:
-                memberNodes.values().forEach(node -> node.tell(new InterruptTaskMsg(true, false), self()));
+                workerNodes.values().forEach(node -> node.tell(new InterruptWorkerRequest(true, false), self()));
                 break;
             case CANCEL:
-                memberNodes.values().forEach(context()::stop);
+                workerNodes.values().forEach(context()::stop);
                 break;
         }
     }
 
+    private void processGetCurrentNodesRequest(GetCurrentWorkerNodesRequest request) {
+        log.debug("get current cluster nodes");
+        Set<NodeId> nodeIds = new HashSet<>(workerNodes.keySet());
+        sender().tell(new CurrentWorkerNodesResponse(nodeIds), self());
+    }
 
-    private void updateTopologies(UpdateWorkerTopologiesMsg msg) {
-        log.info("update worker topologies");
-        memberNodes.values().forEach(node -> node.tell(new UpdateNodeTopologyMsg(msg.getTopology()), self()));
-        context().parent().tell(new WorkersTopologiesUpdatedMsg(), self());
+
+    private void processUpdateWorkerTopologiesRequest(UpdateWorkerTopologiesRequest request) {
+        log.debug("update worker topologies");
+        workerNodes.values().forEach(node -> node.tell(new UpdateWorkerTopologyRequest(request.getTopology()), self()));
+        sendToParent(new UpdateWorkerTopologiesResponse());
+    }
+
+    private void sendToParent(Message msg) {
+        context().parent().tell(msg, self());
     }
 }

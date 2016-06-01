@@ -5,7 +5,7 @@ import akka.actor.Props;
 import akka.cluster.Cluster;
 import com.typesafe.config.Config;
 import org.age.akka.core.actors.custom.master.MasterActor;
-import org.age.akka.core.actors.custom.worker.NodeActor;
+import org.age.akka.core.actors.custom.worker.WorkerActor;
 import org.age.akka.core.helper.AkkaConfigurationCreator;
 import org.age.akka.start.common.data.AkkaNode;
 import org.age.akka.start.common.data.ClusterConfigHolder;
@@ -42,7 +42,7 @@ public class NodeStarter {
                 .registerOnMemberUp(() -> {
                     String nodeName = createNodeName(nodeConfig);
                     actorSystem.actorOf(Props.create(MasterActor.class), "master");
-                    actorSystem.actorOf(Props.create(NodeActor.class), nodeName);
+                    actorSystem.actorOf(Props.create(WorkerActor.class), nodeName);
                 });
 
         return actorSystem;
@@ -71,7 +71,7 @@ public class NodeStarter {
                 .get(actorSystem)
                 .registerOnMemberUp(() -> {
                     String nodeName = createNodeName(nodeConfig);
-                    actorSystem.actorOf(Props.create(NodeActor.class), nodeName);
+                    actorSystem.actorOf(Props.create(WorkerActor.class), nodeName);
                 });
 
         return actorSystem;

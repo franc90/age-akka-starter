@@ -4,18 +4,17 @@ import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.Props;
-import akka.cluster.Cluster;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import akka.japi.pf.ReceiveBuilder;
 import org.age.akka.core.actors.custom.master.services.topology.RingTopologyProcessorActor;
 import org.age.akka.core.actors.custom.worker.NodeId;
-import org.age.akka.core.actors.messages.topology.NewTopologyMsg;
-import org.age.akka.core.actors.messages.topology.ProcessNewTopologyMsg;
-import org.age.akka.core.actors.messages.topology.TopologyUpdatedMsg;
-import org.age.akka.core.actors.messages.topology.UpdateTopologyMsg;
-import org.age.akka.core.actors.messages.worker.GetNodesMsg;
-import org.age.akka.core.actors.messages.worker.NodesMsg;
+import org.age.akka.core.actors.messages.topology.NewTopologyResponse;
+import org.age.akka.core.actors.messages.topology.NewTopologyRequest;
+import org.age.akka.core.actors.messages.topology.TopologyUpdateRequest;
+import org.age.akka.core.actors.messages.topology.TopologyUpdateResponse;
+import org.age.akka.core.actors.messages.worker.nodes.GetCurrentWorkerNodesRequest;
+import org.age.akka.core.actors.messages.worker.nodes.CurrentWorkerNodesResponse;
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
 
@@ -26,17 +25,15 @@ public class TopologyServiceActor extends AbstractActor {
 
     private final LoggingAdapter log = Logging.getLogger(context().system(), this);
 
-    private final Cluster cluster = Cluster.get(getContext().system());
-
     private ActorRef topologyProcessor;
 
     private DirectedGraph<NodeId, DefaultEdge> topology;
 
     public TopologyServiceActor() {
         receive(ReceiveBuilder
-                .match(UpdateTopologyMsg.class, this::updateTopology)
-                .match(NodesMsg.class, this::updateTopologyWithCurrentNodes)
-                .match(NewTopologyMsg.class, this::newTopology)
+                .match(TopologyUpdateRequest.class, this::processTopologyUpdateRequest)
+                .match(CurrentWorkerNodesResponse.class, this::processCurrentNodesResponse)
+                .match(NewTopologyResponse.class, this::processNewTopologyResponse)
                 .matchAny(msg -> log.info("Received not supported message {}", msg))
                 .build());
     }
@@ -47,21 +44,20 @@ public class TopologyServiceActor extends AbstractActor {
         context().watch(topologyProcessor);
     }
 
-    private void updateTopology(UpdateTopologyMsg msg) {
-        log.info("update topology");
-        findWorkerService().ifPresent(workerService -> workerService.tell(new GetNodesMsg(), self()));
+    private void processTopologyUpdateRequest(TopologyUpdateRequest request) {
+        log.debug("update topology");
+        findWorkerService().ifPresent(workerService -> workerService.tell(new GetCurrentWorkerNodesRequest(), self()));
     }
 
-    private void updateTopologyWithCurrentNodes(NodesMsg msg) {
-        log.info("got current nodes, process new topology");
-        Set<NodeId> nodeIds = msg.getNodeIdSet();
-        topologyProcessor.tell(new ProcessNewTopologyMsg(nodeIds), self());
+    private void processCurrentNodesResponse(CurrentWorkerNodesResponse response) {
+        log.debug("got current nodes, process new topology");
+        Set<NodeId> nodeIds = response.getNodeIdSet();
+        topologyProcessor.tell(new NewTopologyRequest(nodeIds), self());
     }
 
-    private void newTopology(NewTopologyMsg msg) {
-        log.info("update topology");
-        topology = msg.getTopology();
-        context().parent().tell(new TopologyUpdatedMsg(topology), self());
+    private void processNewTopologyResponse(NewTopologyResponse response) {
+        log.debug("update topology");
+        context().parent().tell(new TopologyUpdateResponse(response.getTopology()), self());
 
     }
 

@@ -1,20 +1,23 @@
-package org.age.akka.core.actors.messages.worker;
+package org.age.akka.core.actors.messages.worker.nodes;
 
-import akka.actor.Address;
 import com.google.common.base.MoreObjects;
+import org.age.akka.core.actors.custom.worker.NodeId;
+import org.age.akka.core.actors.messages.Message;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-public class RemoveMemberMsg implements MemberStateUpdateMsg {
+import java.util.Set;
 
-    private final Address address;
+public class CurrentWorkerNodesResponse implements Message {
 
-    public RemoveMemberMsg(Address address) {
-        this.address = address;
+    private final Set<NodeId> nodeIdSet;
+
+    public CurrentWorkerNodesResponse(Set<NodeId> nodeIdSet) {
+        this.nodeIdSet = nodeIdSet;
     }
 
-    public Address getAddress() {
-        return address;
+    public Set<NodeId> getNodeIdSet() {
+        return nodeIdSet;
     }
 
     @Override
@@ -23,24 +26,24 @@ public class RemoveMemberMsg implements MemberStateUpdateMsg {
 
         if (o == null || getClass() != o.getClass()) return false;
 
-        RemoveMemberMsg that = (RemoveMemberMsg) o;
+        CurrentWorkerNodesResponse that = (CurrentWorkerNodesResponse) o;
 
         return new EqualsBuilder()
-                .append(address, that.address)
+                .append(nodeIdSet, that.nodeIdSet)
                 .isEquals();
     }
 
     @Override
     public int hashCode() {
         return new HashCodeBuilder(17, 37)
-                .append(address)
+                .append(nodeIdSet)
                 .toHashCode();
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
-                .add("address", address)
+                .add("nodeIdSet", nodeIdSet)
                 .toString();
     }
 }

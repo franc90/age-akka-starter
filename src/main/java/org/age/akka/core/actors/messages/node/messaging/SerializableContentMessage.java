@@ -1,4 +1,4 @@
-package org.age.akka.core.actors.messages;
+package org.age.akka.core.actors.messages.node.messaging;
 
 import com.google.common.base.MoreObjects;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -6,17 +6,17 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.io.Serializable;
 
-public class SendMsgMessage<T extends Serializable> implements Message<Message<T>> {
+public abstract class SerializableContentMessage<T extends Serializable> implements WorkerMessage<T> {
 
-    private final Message<T> content;
+    private final T content;
 
-    public SendMsgMessage(Message<T> content) {
+    public SerializableContentMessage(T content) {
         this.content = content;
     }
 
     @Override
-    public Message<T> getContent() {
-        return null;
+    public T getContent() {
+        return content;
     }
 
     @Override
@@ -25,7 +25,7 @@ public class SendMsgMessage<T extends Serializable> implements Message<Message<T
 
         if (o == null || getClass() != o.getClass()) return false;
 
-        SendMsgMessage that = (SendMsgMessage) o;
+        SerializableContentMessage that = (SerializableContentMessage) o;
 
         return new EqualsBuilder()
                 .append(content, that.content)

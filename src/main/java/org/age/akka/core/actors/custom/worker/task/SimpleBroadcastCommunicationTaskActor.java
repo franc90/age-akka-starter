@@ -2,9 +2,9 @@ package org.age.akka.core.actors.custom.worker.task;
 
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
-import org.age.akka.core.actors.messages.worker.TaskBroadcastInMsg;
-import org.age.akka.core.actors.messages.worker.TaskBroadcastOutMsg;
-import org.age.akka.core.actors.messages.worker.TaskResumeMsg;
+import org.age.akka.core.actors.messages.node.lifecycle.ResumeTaskRequest;
+import org.age.akka.core.actors.messages.node.messaging.BroadcastRequest;
+import org.age.akka.core.actors.messages.node.messaging.TaskMessage;
 import scala.concurrent.duration.Duration;
 import scala.concurrent.duration.FiniteDuration;
 
@@ -20,8 +20,9 @@ public class SimpleBroadcastCommunicationTaskActor extends TaskActor {
 
     public SimpleBroadcastCommunicationTaskActor() {
         receive(getDefaultReceiveBuilder()
-                .match(TaskBroadcastInMsg.class, this::onMessage)
-                .match(TaskResumeMsg.class, msg -> doTask())
+                .match(TaskMessage.class, this::onMessage)
+                .match(ResumeTaskRequest.class, request -> doTask())
+                .matchAny(msg -> log.info("Received not supported message {}", msg))
                 .build());
     }
 
@@ -35,17 +36,17 @@ public class SimpleBroadcastCommunicationTaskActor extends TaskActor {
         if (counter++ < 100) {
             log.info("Iteration {}. {} sending message.", counter, uuid.toString());
 
-            broadcast(new TaskBroadcastOutMsg(counter + ". Test message from " + uuid.toString()));
+            broadcast(new BroadcastRequest(counter + ". Test message from " + uuid.toString()));
 
             FiniteDuration duration = Duration.create(3, TimeUnit.SECONDS);
-            context().system().scheduler().scheduleOnce(duration, self(), new TaskResumeMsg(), context().system().dispatcher(), null);
+            context().system().scheduler().scheduleOnce(duration, self(), new ResumeTaskRequest(), context().system().dispatcher(), null);
             return;
         }
 
         finished = true;
     }
 
-    private void onMessage(TaskBroadcastInMsg msg) {
+    private void onMessage(TaskMessage msg) {
         log.info("Message received: {}.", msg.getContent());
     }
 }

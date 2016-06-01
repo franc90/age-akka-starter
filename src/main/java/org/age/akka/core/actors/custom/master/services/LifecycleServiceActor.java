@@ -2,16 +2,15 @@ package org.age.akka.core.actors.custom.master.services;
 
 import akka.actor.AbstractActor;
 import akka.cluster.Cluster;
-import akka.cluster.ClusterEvent;
 import akka.cluster.Member;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import akka.japi.pf.ReceiveBuilder;
-import org.age.akka.core.actors.messages.lifecycle.LifecycleMsg;
+import org.age.akka.core.actors.messages.lifecycle.LifecycleUpdatedRequest;
 
 import static akka.cluster.ClusterEvent.*;
-import static org.age.akka.core.actors.messages.lifecycle.LifecycleMsg.Type.ADD;
-import static org.age.akka.core.actors.messages.lifecycle.LifecycleMsg.Type.REMOVE;
+import static org.age.akka.core.actors.messages.lifecycle.LifecycleUpdatedRequest.Type.ADD;
+import static org.age.akka.core.actors.messages.lifecycle.LifecycleUpdatedRequest.Type.REMOVE;
 
 public class LifecycleServiceActor extends AbstractActor {
 
@@ -43,12 +42,12 @@ public class LifecycleServiceActor extends AbstractActor {
 
     private void addMember(Member member) {
         log.info("inform parent that node should be added {}", member);
-        context().parent().tell(new LifecycleMsg(ADD, member.address()), self());
+        context().parent().tell(new LifecycleUpdatedRequest(ADD, member.address()), self());
     }
 
     private void removeMember(Member member) {
         log.info("inform parent that node should be removed {}", member);
-        context().parent().tell(new LifecycleMsg(REMOVE, member.address()), self());
+        context().parent().tell(new LifecycleUpdatedRequest(REMOVE, member.address()), self());
     }
 
 }
