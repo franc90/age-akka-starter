@@ -7,7 +7,7 @@ public interface ClusterProps {
 
     ActorSystemName ACTOR_SYSTEM_NAME = new ActorSystemName("age3");
 
+    // Role is  not used actively in current implementation
     Role CLUSTER_MEMBER = new Role("cluster");
 
-    Role WORKER = new Role("worker");
 }

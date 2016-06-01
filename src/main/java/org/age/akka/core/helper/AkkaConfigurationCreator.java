@@ -51,7 +51,7 @@ public class AkkaConfigurationCreator {
     }
 
     private String buildSeedNodesString(Collection<AkkaNode> seedNodes) {
-        String returnVal = seedNodes
+        return seedNodes
                 .stream()
                 .map(node -> {
                     ActorSystemName actorSystemName = node.getActorSystemName();
@@ -61,8 +61,6 @@ public class AkkaConfigurationCreator {
                 })
                 .reduce((u, v) -> u + ",\n" + v)
                 .orElse("NO_SEED_NODES");
-
-        return returnVal;
     }
 
     private String buildRoles(List<Role> roles) {

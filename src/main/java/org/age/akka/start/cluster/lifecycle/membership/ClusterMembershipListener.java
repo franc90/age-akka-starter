@@ -4,16 +4,12 @@ import com.google.common.eventbus.EventBus;
 import com.hazelcast.core.MemberAttributeEvent;
 import com.hazelcast.core.MembershipEvent;
 import com.hazelcast.core.MembershipListener;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
 @Named
 public class ClusterMembershipListener implements MembershipListener {
-
-    private static final Logger log = LoggerFactory.getLogger(ClusterMembershipListener.class);
 
     @Inject
     private EventBus eventBus;

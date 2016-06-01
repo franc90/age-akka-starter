@@ -18,14 +18,6 @@ public class AkkaStarterTest {
 
         ActorSystem actorSystem = AkkaUtils.getActorSystem();
         assertThat(actorSystem).isNotNull();
-
-//        it won't work this way. shade.
-//        Future<ActorRef> future = actorSystem.actorSelection("user/" + AkkaConfigConstants.CLUSTER_PROXY_AGENT_NAME).resolveOne(new Timeout(7000));
-//        assertThat(future.isCompleted()).isTrue();
-//        ActorRef actorRef = Await.result(future, new FiniteDuration(1, TimeUnit.SECONDS));
-//        assertThat(actorRef).isNotNull();
-
-
     }
 
     private ClusterConfigHolder generateClusterNodeConfig() {

@@ -2,26 +2,16 @@ package org.age.akka.core.helper;
 
 public class PathCreator {
 
-    private static final String URL_START = "akka.tcp://";
+    public static String createPath(String hostname, int port, String actorName) {
+        return new StringBuilder()
+                .append("akka.tcp://age3@")
+                .append(hostname)
+                .append(":")
+                .append(port)
+                .append("/user/")
+                .append(actorName)
+                .toString();
 
-    private static final String USER = "user";
-
-    private static final String SEPARATOR = "/";
-
-    public static String createPath(String hostPort, String... paths) {
-        StringBuilder builtPath = new StringBuilder()
-                .append(URL_START)
-                .append(hostPort)
-                .append(SEPARATOR)
-                .append(USER);
-
-        for (String path : paths) {
-            builtPath
-                    .append(SEPARATOR)
-                    .append(path);
-        }
-
-        return builtPath.toString();
     }
 
 }
