@@ -6,6 +6,7 @@ import akka.cluster.Cluster;
 import com.typesafe.config.Config;
 import org.age.akka.core.actors.master.MasterActor;
 import org.age.akka.core.actors.worker.WorkerActor;
+import org.age.akka.core.actors.worker.task.TaskActor;
 import org.age.akka.core.helper.AkkaConfigurationCreator;
 import org.age.akka.start.common.data.AkkaNode;
 import org.age.akka.start.common.data.ClusterConfigHolder;
@@ -15,6 +16,7 @@ import org.age.akka.start.common.utils.ClusterDataHolder;
 import org.jboss.netty.channel.ChannelException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -30,6 +32,9 @@ public class NodeStarter {
     @Inject
     private ClusterDataHolder clusterDataHolder;
 
+    @Value("${computation.task:org.age.akka.core.actors.worker.task.SimpleTaskActor}")
+    private Class<TaskActor> taskClass;
+
     private ActorSystem actorSystem;
 
     public ActorSystem startCluster(ClusterConfigHolder nodeConfig) {
@@ -42,7 +47,7 @@ public class NodeStarter {
                 .registerOnMemberUp(() -> {
                     String nodeName = createNodeName(nodeConfig);
                     actorSystem.actorOf(Props.create(MasterActor.class), "master");
-                    actorSystem.actorOf(Props.create(WorkerActor.class), nodeName);
+                    actorSystem.actorOf(Props.create(WorkerActor.class, taskClass), nodeName);
                 });
 
         return actorSystem;
@@ -71,7 +76,7 @@ public class NodeStarter {
                 .get(actorSystem)
                 .registerOnMemberUp(() -> {
                     String nodeName = createNodeName(nodeConfig);
-                    actorSystem.actorOf(Props.create(WorkerActor.class), nodeName);
+                    actorSystem.actorOf(Props.create(WorkerActor.class, taskClass), nodeName);
                 });
 
         return actorSystem;

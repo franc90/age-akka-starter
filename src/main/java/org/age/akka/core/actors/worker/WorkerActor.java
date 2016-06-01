@@ -7,7 +7,7 @@ import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import akka.japi.pf.ReceiveBuilder;
-import org.age.akka.core.actors.worker.task.SimpleBroadcastCommunicationTaskActor;
+import org.age.akka.core.actors.worker.task.TaskActor;
 import org.age.akka.core.helper.PathCreator;
 import org.age.akka.core.messages.node.lifecycle.TaskInterruptedRequest;
 import org.age.akka.core.messages.node.lifecycle.TaskInterruptedResponse;
@@ -23,6 +23,8 @@ public class WorkerActor extends AbstractActor {
 
     private final LoggingAdapter log = Logging.getLogger(context().system(), this);
 
+    private final Class<TaskActor> taskClass;
+
     private ActorRef taskRef;
 
     private DirectedGraph<NodeId, DefaultEdge> topology;
@@ -33,8 +35,8 @@ public class WorkerActor extends AbstractActor {
 
     private boolean started;
 
-
-    public WorkerActor() {
+    public WorkerActor(Class<TaskActor> taskClass) {
+        this.taskClass = taskClass;
         receive(ReceiveBuilder
                 .match(StartWorkerTaskRequest.class, this::processStartTaskRequest)
                 .match(UpdateWorkerTopologyRequest.class, this::processUpdateWorkerTopologyRequest)
@@ -48,7 +50,7 @@ public class WorkerActor extends AbstractActor {
 
     @Override
     public void preStart() throws Exception {
-        taskRef = context().actorOf(Props.create(SimpleBroadcastCommunicationTaskActor.class), "task");
+        taskRef = context().actorOf(Props.create(taskClass), "task");
         context().watch(taskRef);
         log.debug("Joined this cluster because I make poor life choices.");
     }
