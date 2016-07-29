@@ -7,7 +7,7 @@ import org.age.akka.start.common.utils.SleepUtils;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
-public class SoutTaskActor extends TaskActor {
+public class NeverendingTaskActor extends TaskActor {
 
     private final LoggingAdapter log = Logging.getLogger(context().system(), this);
 
@@ -15,7 +15,7 @@ public class SoutTaskActor extends TaskActor {
 
     private int counter = 0;
 
-    public SoutTaskActor() {
+    public NeverendingTaskActor() {
         receive(getDefaultReceiveBuilder()
                 .matchAny(msg -> log.info("Received not supported message {}", msg))
                 .build());

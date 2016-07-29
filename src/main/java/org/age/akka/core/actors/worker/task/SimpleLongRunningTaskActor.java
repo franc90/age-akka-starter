@@ -28,6 +28,8 @@ public class SimpleLongRunningTaskActor extends TaskActor {
         for (; counter < 100; counter++) {
             log.info("Iteration {}.", counter);
 
+            additionalAction(counter);
+
             SleepUtils.sleep(1000L);
             checkIfInterrupted();
             if (paused || cancelled) {
@@ -37,4 +39,9 @@ public class SimpleLongRunningTaskActor extends TaskActor {
 
         finished = true;
     }
+
+    protected void additionalAction(int iteration) {
+
+    }
+
 }
