@@ -7,21 +7,32 @@ import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import akka.japi.pf.ReceiveBuilder;
+import com.google.common.collect.Lists;
+import org.age.akka.core.actors.master.services.LifecycleServiceActor;
 import org.age.akka.core.actors.worker.task.TaskActor;
 import org.age.akka.core.helper.PathCreator;
+import org.age.akka.core.helper.TimeUtils;
 import org.age.akka.core.messages.node.lifecycle.TaskInterruptedRequest;
 import org.age.akka.core.messages.node.lifecycle.TaskInterruptedResponse;
 import org.age.akka.core.messages.node.messaging.BroadcastRequest;
+import org.age.akka.core.messages.node.messaging.RandomNeighborRequest;
 import org.age.akka.core.messages.node.messaging.TaskMessage;
 import org.age.akka.core.messages.worker.nodes.InterruptWorkerRequest;
 import org.age.akka.core.messages.worker.nodes.StartWorkerTaskRequest;
 import org.age.akka.core.messages.worker.topology.UpdateWorkerTopologyRequest;
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Collections;
+import java.util.List;
 
 public class WorkerActor extends AbstractActor {
 
     private final LoggingAdapter log = Logging.getLogger(context().system(), this);
+
+    private static final Logger logger = LoggerFactory.getLogger(LifecycleServiceActor.class);
 
     private final Class<TaskActor> taskClass;
 
@@ -39,6 +50,7 @@ public class WorkerActor extends AbstractActor {
         this.taskClass = taskClass;
         receive(ReceiveBuilder
                 .match(StartWorkerTaskRequest.class, this::processStartTaskRequest)
+                .match(RandomNeighborRequest.class, this::processSendAnyMemberMsgRequest)
                 .match(UpdateWorkerTopologyRequest.class, this::processUpdateWorkerTopologyRequest)
                 .match(InterruptWorkerRequest.class, this::processInterruptWorkerRequest)
                 .match(TaskInterruptedRequest.class, this::processTaskInterruptedRequest)
@@ -46,6 +58,9 @@ public class WorkerActor extends AbstractActor {
                 .match(TaskMessage.class, this::processTaskMessage)
                 .matchAny((m -> log.warning("unexpected message {}", m)))
                 .build());
+
+        long timestamp = System.currentTimeMillis();
+        logger.warn("{},ini,{},{}", TimeUtils.toString(timestamp), timestamp, self().path().toString());
     }
 
     @Override
@@ -57,6 +72,9 @@ public class WorkerActor extends AbstractActor {
 
     @Override
     public void postStop() throws Exception {
+        long timestamp = System.currentTimeMillis();
+        logger.warn("{},ext,{},{}", TimeUtils.toString(timestamp), timestamp, self().path().toString());
+
         context().unwatch(taskRef);
         context().stop(taskRef);
     }
@@ -97,7 +115,17 @@ public class WorkerActor extends AbstractActor {
     @SuppressWarnings("unchecked")
     private void processBroadcastRequest(BroadcastRequest request) {
         log.debug("Sending processBroadcastRequest message {} ", request);
-        topology.vertexSet().stream().forEach(id -> {
+        topology.vertexSet().forEach(id -> {
+            TaskMessage msg = new TaskMessage(request.getContent());
+            sendTaskMessage(id, msg);
+        });
+    }
+
+    @SuppressWarnings("unchecked")
+    private void processSendAnyMemberMsgRequest(RandomNeighborRequest request) {
+        List<NodeId> nodeIds = Lists.newArrayList(topology.vertexSet());
+        Collections.shuffle(nodeIds);
+        nodeIds.stream().findAny().ifPresent(id -> {
             TaskMessage msg = new TaskMessage(request.getContent());
             sendTaskMessage(id, msg);
         });

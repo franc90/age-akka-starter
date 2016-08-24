@@ -6,7 +6,10 @@ import akka.cluster.Member;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import akka.japi.pf.ReceiveBuilder;
+import org.age.akka.core.helper.TimeUtils;
 import org.age.akka.core.messages.lifecycle.LifecycleUpdatedRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static akka.cluster.ClusterEvent.*;
 import static org.age.akka.core.messages.lifecycle.LifecycleUpdatedRequest.Type.ADD;
@@ -15,6 +18,8 @@ import static org.age.akka.core.messages.lifecycle.LifecycleUpdatedRequest.Type.
 public class LifecycleServiceActor extends AbstractActor {
 
     private final LoggingAdapter log = Logging.getLogger(context().system(), this);
+
+    private static final Logger logger = LoggerFactory.getLogger(LifecycleServiceActor.class);
 
     private final Cluster cluster = Cluster.get(getContext().system());
 
@@ -42,11 +47,17 @@ public class LifecycleServiceActor extends AbstractActor {
 
     private void addMember(Member member) {
         log.info("inform parent that node should be added {}", member);
+        long timestamp = System.currentTimeMillis();
+        logger.warn("{},add,{},{}", TimeUtils.toString(timestamp), timestamp, member.address());
+
         context().parent().tell(new LifecycleUpdatedRequest(ADD, member.address()), self());
     }
 
     private void removeMember(Member member) {
         log.info("inform parent that node should be removed {}", member);
+        long timestamp = System.currentTimeMillis();
+        logger.warn("{},rmv,{},{}", TimeUtils.toString(timestamp), timestamp, member.address());
+
         context().parent().tell(new LifecycleUpdatedRequest(REMOVE, member.address()), self());
     }
 

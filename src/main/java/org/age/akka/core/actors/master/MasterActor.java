@@ -10,6 +10,7 @@ import org.age.akka.core.actors.master.services.LifecycleServiceActor;
 import org.age.akka.core.actors.master.services.TaskServiceActor;
 import org.age.akka.core.actors.master.services.TopologyServiceActor;
 import org.age.akka.core.actors.master.services.WorkerServiceActor;
+import org.age.akka.core.helper.TimeUtils;
 import org.age.akka.core.messages.lifecycle.LifecycleUpdatedRequest;
 import org.age.akka.core.messages.task.UpdateTaskStateRequest;
 import org.age.akka.core.messages.task.UpdateTaskStateResponse;
@@ -22,6 +23,8 @@ import org.age.akka.core.messages.worker.lifecycle.RemoveWorkerRequest;
 import org.age.akka.core.messages.worker.lifecycle.UpdateWorkersRequest;
 import org.age.akka.core.messages.worker.topology.UpdateWorkerTopologiesRequest;
 import org.age.akka.core.messages.worker.topology.UpdateWorkerTopologiesResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -29,6 +32,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class MasterActor extends AbstractActor {
 
     private final LoggingAdapter log = Logging.getLogger(context().system(), this);
+
+    private static final Logger logger = LoggerFactory.getLogger(MasterActor.class);
 
     private ActorRef topologyService;
 
